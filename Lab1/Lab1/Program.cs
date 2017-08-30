@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Small Hello World program for Lab1
+/// 
+/// Bryan Hatasaka u1028471
+/// Last Updated: Aug. 30, 2017
 /// </summary>
 namespace Lab1
 {
@@ -13,7 +16,7 @@ namespace Lab1
     {
         static void Main(string[] args)
         {
-            Console.Write("Hello, world"); //Prints "Hello, world" to the console
+            Console.Write("Hello, world");
             Console.Read(); //Keeps the program running so its possible to see the printed text
         }
     }
