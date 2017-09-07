@@ -31,24 +31,64 @@ namespace FormulaEvaluator
             //Used if an entered token 
             int parsedInt;
 
+            int prevValue;
+            int result;
+            String op = null;
+            bool variable = false;
+
             //Traverses through the string
             foreach(String substring in substrings)
             {
                 //If the token is an integer
                 if(Int32.TryParse(substring, out parsedInt))
                 {
-                    if(operators.IsOnTop<String>("*") || operators.IsOnTop<String>("/"))
+                    HandleInt(parsedInt, operators, values);
+                }
+                //If the token is a variable
+                else if(Char.IsLetter(substring[0]))
+                {
+                    //Go through and make sure the variable follows the correct pattern (one or more letters followed by one or more numbers)
+                    bool reachedNumber = false;
+                    for(int letterPos = 1; letterPos < substring.Length; letterPos++)
                     {
-
+                        char character = substring[letterPos];
+                        if (reachedNumber && Char.IsNumber(character))
+                        {
+                        //TODO throw exception
+                        }
+                        else
+                            if (Char.IsNumber(character))
+                            reachedNumber = true;
+                            
                     }
                 }
+
+                //If the token is a variable
             }
 
+            //Operator and value stack checking after the last token has been processed
 
             return 0;
         }
 
+        private static void HandleInt(int number, Stack<String> operatorStack, Stack<int> valuesStack)
+        {
+            if (operatorStack.IsOnTop<String>("*") || operatorStack.IsOnTop<String>("/"))
+            {
+                String op = operatorStack.Pop();
+                int prevValue = valuesStack.Pop();
+                int result;
 
+                if (op.Equals("/"))
+                    result = prevValue / number;
+                else
+                    result = prevValue * number;
+
+                valuesStack.Push(result);
+            }
+            else
+                valuesStack.Push(number);
+        }
     }
     public static class PS1StackExtensions
     {
