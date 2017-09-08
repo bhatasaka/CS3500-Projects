@@ -37,9 +37,14 @@ namespace FormulaEvaluator
             //Traverses through the string
             foreach (String substring in substrings)
             {
+                //Get rid of leading and trailing whitespace
                 token = substring.Trim();
+
+                if (token.Equals(""))
+                    continue;
+
                 //If the token is an integer
-                if (Int32.TryParse(token, out parsedInt))
+                else if (Int32.TryParse(token, out parsedInt))
                 {
                     HandleInt(parsedInt, operators, values);
                 }
@@ -47,24 +52,7 @@ namespace FormulaEvaluator
                 //If the token is a variable (checks to see if the first character is a letter)
                 else if (Char.IsLetter(token[0]))
                 {
-                    //Go through and make sure the variable follows the correct pattern (one or more letters followed by one or more numbers)
-                    bool reachedNumber = false;
-                    for (int letterPos = 1; letterPos < token.Length; letterPos++)
-                    {
-                        char character = token[letterPos];
-                        if (reachedNumber && Char.IsNumber(character))
-                        {
-                            throw malformedException;
-                        }
-                        else if (!reachedNumber && Char.IsNumber(character))
-                            reachedNumber = true;
-                        else if (!reachedNumber && !Char.IsLetter(character))
-                        {
-                            throw malformedException;
-                        }
-                    }
-                    if (!reachedNumber)
-                        throw malformedException;
+                    VerifyVariable(token);
 
                     //Lookup variable and pass it to the same function that handles a normal integer
                     try
@@ -116,8 +104,17 @@ namespace FormulaEvaluator
             }
 
             //Operator and value stack checking after the last token has been processed
-
-            return 0;
+            if(operators.Count == 0 && values.Count == 1)
+            {
+                return values.Pop();
+            }
+            else if(operators.Count == 1 && values.Count == 2)
+            {
+                HandlePlusMinus(operators, values);
+                return values.Pop();
+            }
+            else
+                throw malformedException;
         }
 
         /// <summary>
@@ -176,6 +173,33 @@ namespace FormulaEvaluator
                     valueStack.Push(preOpValue - postOpvValue);
                 }
             }
+        }
+
+        /// <summary>
+        /// Makes sure that the variable follows the pattern a variable should of one or more letters followed
+        /// by one or more letters
+        /// </summary>
+        /// <param name="variable"></param>
+        private static void VerifyVariable(String variable)
+        {
+            bool reachedNumber = false;
+            for (int letterPos = 1; letterPos < variable.Length; letterPos++)
+            {
+                char character = variable[letterPos];
+                if (reachedNumber && Char.IsNumber(character))
+                {
+                    throw malformedException;
+                }
+                else if (!reachedNumber && Char.IsNumber(character))
+                    reachedNumber = true;
+                else if (!reachedNumber && !Char.IsLetter(character))
+                {
+                    throw malformedException;
+                }
+            }
+
+            if (!reachedNumber)
+                throw malformedException;
         }
     }
 

@@ -15,25 +15,8 @@ namespace FormulaEvaluatorTest
 
         static void Main(string[] args)
         {
-            //Testing removing whitespace
-            String word = "This Is A String \n With Some Spaces";
-            Console.WriteLine(word);
-            word = Regex.Replace(word, @"\s+", "");
-            Console.WriteLine(word);
-
-            //Testing tryparse
-            int parsedInt;
-            Int32.TryParse("21", out parsedInt);
-
-            if (parsedInt != 21)
-                Console.WriteLine("Test 1 - Failed - parse int, regular int");
-
-            if (Int32.TryParse("2.1", out parsedInt))
-                Console.WriteLine("Test 2 - Failed - parse int, real number");
-
-
             //Testing regular int recognition
-            Evaluator.Evaluate("1 * A4", varLookup);
+            Console.WriteLine(Evaluator.Evaluate("(1 + 2) * 3", varLookup));
 
             Console.ReadLine();
 
