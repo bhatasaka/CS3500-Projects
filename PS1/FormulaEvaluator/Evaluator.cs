@@ -97,18 +97,18 @@ namespace FormulaEvaluator
                     operators.Pop();
 
                     //If there is a value on the stack, pop it and hand it over to the int handling function
-                    if(values.Count > 0)
+                    if (values.Count > 0)
                         HandleInt(values.Pop(), operators, values);
 
                 }
             }
 
             //Operator and value stack checking after the last token has been processed
-            if(operators.Count == 0 && values.Count == 1)
+            if (operators.Count == 0 && values.Count == 1)
             {
                 return values.Pop();
             }
-            else if(operators.Count == 1 && values.Count == 2)
+            else if (operators.Count == 1 && values.Count == 2)
             {
                 HandlePlusMinus(operators, values);
                 return values.Pop();
@@ -186,7 +186,8 @@ namespace FormulaEvaluator
             for (int letterPos = 1; letterPos < variable.Length; letterPos++)
             {
                 char character = variable[letterPos];
-                if (reachedNumber && Char.IsNumber(character))
+
+                if (reachedNumber && !Char.IsNumber(character))
                 {
                     throw malformedException;
                 }
