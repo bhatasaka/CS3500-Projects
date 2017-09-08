@@ -16,6 +16,7 @@ namespace FormulaEvaluator
     public static class Evaluator
     {
         public delegate int Lookup(String v);
+        private static Exception malformedException = new ArgumentException("Malformed expression");
 
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
@@ -31,10 +32,10 @@ namespace FormulaEvaluator
             //Used if an entered token is an integer
             int parsedInt;
             String token;
-            Exception malformedException = new ArgumentException("Malformed expression");
+            //Exception malformedException = new ArgumentException("Malformed expression");
 
             //Traverses through the string
-            foreach(String substring in substrings)
+            foreach (String substring in substrings)
             {
                 token = substring.Trim();
                 //If the token is an integer
@@ -62,6 +63,8 @@ namespace FormulaEvaluator
                             throw malformedException;
                         }
                     }
+                    if (!reachedNumber)
+                        throw malformedException;
 
                     //Lookup variable and pass it to the same function that handles a normal integer
                     try
@@ -69,7 +72,7 @@ namespace FormulaEvaluator
                         parsedInt = variableEvaluator(token);
                         HandleInt(parsedInt, operators, values);
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         throw new ArgumentException("Unknown variable");
                     }
@@ -83,33 +86,32 @@ namespace FormulaEvaluator
                     throw malformedException;
 
                 //If the token is + or -
-                else if(token.Equals("+") || token.Equals("-"))
+                else if (token.Equals("+") || token.Equals("-"))
                 {
-                    //Checks if a + or - is currently on the operator stack
-                    if (operators.IsOnTop<String>("+") || operators.IsOnTop<String>("-"))
-                    {
-                        //Checks to make sure there are two values to be added before the current token is put on the stack
-                        if(values.Count < 2)
-                        {
-                            throw malformedException;
-                        }
-
-                        int postOpvValue = values.Pop();
-                        int preOpValue = values.Pop();
-                        String op = operators.Pop();
-
-                        if (op.Equals("+"))
-                        {
-                            values.Push(preOpValue + postOpvValue);
-                        }
-                        else
-                        {
-                            values.Push(preOpValue - postOpvValue);
-                        }
-                    }
+                    HandlePlusMinus(operators, values);
 
                     //Pushes the token (+ or -) onto the stack always
                     operators.Push(token);
+                }
+
+                //If the token is * or / or (
+                else if (token.Equals("*") || token.Equals("/") || token.Equals("("))
+                    operators.Push(token);
+
+                //If the token is )
+                else if (token.Equals(")"))
+                {
+                    if (operators.IsOnTop<String>("+") || operators.IsOnTop<String>("-"))
+                        HandlePlusMinus(operators, values);
+
+                    if (!operators.IsOnTop<String>("("))
+                        throw malformedException;
+                    operators.Pop();
+
+                    //If there is a value on the stack, pop it and hand it over to the int handling function
+                    if(values.Count > 0)
+                        HandleInt(values.Pop(), operators, values);
+
                 }
             }
 
@@ -127,25 +129,53 @@ namespace FormulaEvaluator
         /// </summary>
         /// <param name="number"></param>
         /// <param name="operatorStack"></param>
-        /// <param name="valuesStack"></param>
-        private static void HandleInt(int number, Stack<String> operatorStack, Stack<int> valuesStack)
+        /// <param name="valueStack"></param>
+        private static void HandleInt(int number, Stack<String> operatorStack, Stack<int> valueStack)
         {
             if (operatorStack.IsOnTop<String>("*") || operatorStack.IsOnTop<String>("/"))
             {
+                //If there isn't a value to be multiplied or divided by, throw an exception
+                if (valueStack.Count < 1)
+                    throw malformedException;
+
                 String op = operatorStack.Pop();
-                int preOpValue = valuesStack.Pop();
+                int preOpValue = valueStack.Pop();
 
                 if (op.Equals("/"))
                 {
                     if (number == 0)
                         throw new ArgumentException("Divide By Zero");
-                    valuesStack.Push(preOpValue / number);
+                    valueStack.Push(preOpValue / number);
                 }
                 else
-                    valuesStack.Push(preOpValue * number);
+                    valueStack.Push(preOpValue * number);
             }
             else
-                valuesStack.Push(number);
+                valueStack.Push(number);
+        }
+
+        private static void HandlePlusMinus(Stack<String> operatorStack, Stack<int> valueStack)
+        {
+            //Checks if a + or - is currently on the operator stack
+            if (operatorStack.IsOnTop<String>("+") || operatorStack.IsOnTop<String>("-"))
+            {
+                //Checks to make sure there are two values to be added before the current token is put on the stack
+                if (valueStack.Count < 2)
+                    throw malformedException;
+
+                String op = operatorStack.Pop();
+                int postOpvValue = valueStack.Pop();
+                int preOpValue = valueStack.Pop();
+
+                if (op.Equals("+"))
+                {
+                    valueStack.Push(preOpValue + postOpvValue);
+                }
+                else
+                {
+                    valueStack.Push(preOpValue - postOpvValue);
+                }
+            }
         }
     }
 
