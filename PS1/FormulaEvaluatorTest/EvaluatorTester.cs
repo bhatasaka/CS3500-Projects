@@ -36,6 +36,7 @@ namespace FormulaEvaluatorTest
             Evaluator.Evaluate("1 * A4", varLookup);
 
             Console.ReadLine();
+
         }
         public static int varLookup(String v)
         {
