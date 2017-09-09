@@ -6,33 +6,51 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 /// <summary>
-/// This is the formula evaluator library
+/// This is the namespace for the formula evaluator library.
+/// This library contains a method that evaluates integer infix arithmetic expressions
 /// 
 /// Bryan Hatasaka
 /// u1028471
 /// </summary>
 namespace FormulaEvaluator
 {
+    /// <summary>
+    /// This class contains the implementation of the evaluator library
+    /// </summary>
     public static class Evaluator
     {
         public delegate int Lookup(String v);
         private static Exception malformedException = new ArgumentException("Malformed expression");
 
+        /// <summary>
+        /// This function takes in a string that contains integer arithmetic expressions
+        /// written using standard infix notation.
+        /// 
+        /// This method requires a delegate that takes in a variable (that follows a format of one or more letters
+        /// followed by one or more numbers) and returns an integer.
+        /// 
+        /// This method allows the use of variables in the proper format to be evaluated along with the
+        /// standard infix expression, provided that a proper delegate is provided.
+        /// 
+        /// For example: if the following string is provided: "A4 + 4 / 2" and the provided delgate returns
+        /// 4 for the value of A4, the method returns 6.
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="variableEvaluator"></param>
+        /// <returns></returns>
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
+            //These stacks are used to hold the operators and operands of the infix expression
             Stack<int> values = new Stack<int>();
             Stack<String> operators = new Stack<String>();
-
-            //Remove all whitespace
-            //exp = Regex.Replace(exp, @"\s+", "");
 
             //Splits the exp string into an array of tokens
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
 
-            //Used if an entered token is an integer
-            int parsedInt;
+            //Used while evaluating
             String token;
-            //Exception malformedException = new ArgumentException("Malformed expression");
 
             //Traverses through the string
             foreach (String substring in substrings)
@@ -44,7 +62,7 @@ namespace FormulaEvaluator
                     continue;
 
                 //If the token is an integer
-                else if (Int32.TryParse(token, out parsedInt))
+                else if (Int32.TryParse(token, out int parsedInt))
                 {
                     HandleInt(parsedInt, operators, values);
                 }
@@ -54,7 +72,8 @@ namespace FormulaEvaluator
                 {
                     VerifyVariable(token);
 
-                    //Lookup variable and pass it to the same function that handles a normal integer
+                    //Try to lookup the variable and pass it to the same function that handles a normal integer
+                    //If an exception is thrown by the delegate looking up the variable, throw an argument exception
                     try
                     {
                         parsedInt = variableEvaluator(token);
@@ -92,6 +111,8 @@ namespace FormulaEvaluator
                     if (operators.IsOnTop<String>("+") || operators.IsOnTop<String>("-"))
                         HandlePlusMinus(operators, values);
 
+                    //At this point, only a "(" should be on top of the stack. If there isn't one where expected,
+                    //then throw an argument exception
                     if (!operators.IsOnTop<String>("("))
                         throw malformedException;
                     operators.Pop();
@@ -103,7 +124,11 @@ namespace FormulaEvaluator
                 }
             }
 
-            //Operator and value stack checking after the last token has been processed
+            //Operator and value stack checking after the last token has been processed.
+            //If there are no operators, there should be 1 value on the stack - the result.
+            //If there is an operator, there should be only 1 and it should be a + or -.
+            //If this is the case, there should be two values on the value stack to be processed.
+            //If one of these two conditions are not met, and argument exception is thrown
             if (operators.Count == 0 && values.Count == 1)
             {
                 return values.Pop();
@@ -118,11 +143,11 @@ namespace FormulaEvaluator
         }
 
         /// <summary>
-        /// Will perform the required actions for an integer in the formula evaluator.\n
+        /// Will perform the required actions for an integer in the formula evaluator.
         /// 
-        /// \nIf * or / is at the top of the operator stack, will pop the value stack and pop the operator stack, 
+        /// If * or / is at the top of the operator stack, will pop the value stack and pop the operator stack, 
         /// and apply the popped operator to the popped number and passed number. Pushes the result onto the value stack.
-        /// \nOtherwise, just pushes the passed number onto the value stack.
+        /// Otherwise, just pushes the passed number onto the value stack.
         /// </summary>
         /// <param name="number"></param>
         /// <param name="operatorStack"></param>
@@ -151,6 +176,14 @@ namespace FormulaEvaluator
                 valueStack.Push(number);
         }
 
+        /// <summary>
+        /// Performs the required actions for a + or - on top of the stack in the evaluator function.
+        /// 
+        /// If a + or - is on the stack, the top two values on the valueStack will be applied to the operator
+        /// with the highest number being the second number in the expression
+        /// </summary>
+        /// <param name="operatorStack"></param>
+        /// <param name="valueStack"></param>
         private static void HandlePlusMinus(Stack<String> operatorStack, Stack<int> valueStack)
         {
             //Checks if a + or - is currently on the operator stack
@@ -176,8 +209,8 @@ namespace FormulaEvaluator
         }
 
         /// <summary>
-        /// Makes sure that the variable follows the pattern a variable should of one or more letters followed
-        /// by one or more letters
+        /// Makes sure that the variable follows the correct format. A variable should be one or more letters followed
+        /// by one or more letters. If it's not, an exception is thrown
         /// </summary>
         /// <param name="variable"></param>
         private static void VerifyVariable(String variable)
@@ -205,7 +238,7 @@ namespace FormulaEvaluator
     }
 
     /// <summary>
-    /// Adds a extension method to the Stack class
+    /// Adds a extension method to the Stack class.
     /// </summary>
     public static class PS1StackExtensions
     {
