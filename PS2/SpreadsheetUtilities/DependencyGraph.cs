@@ -145,6 +145,34 @@ namespace SpreadsheetUtilities
         {
         }
 
-    }
+        private class DG_GraphNode
+        {
+            String graphNode;
+            HashSet<String> dependents;
+            HashSet<String> dependees;
 
+            DG_GraphNode(String dependee, String dependent)
+            {
+                graphNode = dependee;
+                dependents = new HashSet<string>();
+                AddDependent(dependent);
+            }
+
+            private void AddDependent(String dependent)
+            {
+                dependents.Add(dependent);
+            }
+
+            private void RemoveDependent(String dependent)
+            {
+                dependents.Remove(dependent);
+            }
+
+            String getNode()
+            {
+                String graphNodeCopy = graphNode;
+                return graphNodeCopy;
+            }
+        }
+    }
 }
