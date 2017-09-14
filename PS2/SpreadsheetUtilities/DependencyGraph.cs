@@ -2,6 +2,7 @@
 // Version 1.1 (Fixed error in comment for RemoveDependency.)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,11 +39,16 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class DependencyGraph
     {
+        Hashtable dependecyTable;
+        private int p_size;
+
         /// <summary>
         /// Creates an empty DependencyGraph.
         /// </summary>
         public DependencyGraph()
         {
+            dependecyTable = new Hashtable();
+            p_size = 0;
         }
 
 
@@ -51,7 +57,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int Size
         {
-            get { return 0; }
+            get { return p_size; }
         }
 
 
@@ -115,6 +121,15 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
+            if (dependecyTable.ContainsKey(s.GetHashCode()))
+            {
+                dependecyTable.
+            }
+            else
+            {
+                DG_GraphNode node = new DG_GraphNode(s, t);
+                dependecyTable.Add(node.GetHashCode(), node);
+            }
         }
 
 
@@ -151,7 +166,7 @@ namespace SpreadsheetUtilities
             HashSet<String> dependents;
             HashSet<String> dependees;
 
-            DG_GraphNode(String dependee, String dependent)
+            public DG_GraphNode(String dependee, String dependent) //TODO check permission
             {
                 graphNode = dependee;
                 dependents = new HashSet<string>();
@@ -168,10 +183,9 @@ namespace SpreadsheetUtilities
                 dependents.Remove(dependent);
             }
 
-            String getNode()
+            public override int GetHashCode()
             {
-                String graphNodeCopy = graphNode;
-                return graphNodeCopy;
+                return graphNode.GetHashCode();
             }
         }
     }
