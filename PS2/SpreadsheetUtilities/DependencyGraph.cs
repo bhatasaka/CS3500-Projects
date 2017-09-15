@@ -212,18 +212,19 @@ namespace SpreadsheetUtilities
 
                 if(dependentRemoveSucess && dependeeRemoveSucess)
                     p_size--;
+
+                //Checks to see if the term now has no dependents/dependees
+                //and if so, remove it from the appropriate dictionary
+                if (dependentsDictionary[sKey].Count == 0)
+                {
+                    dependentsDictionary.Remove(sKey);
+                }
+                if (dependeesDictionary[tKey].Count == 0)
+                {
+                    dependeesDictionary.Remove(tKey);
+                }
             }
 
-            //Checks to see if the term has no dependents/dependees
-            //and if so, remove it from the appropriate dictionary
-            if (dependentsDictionary[sKey].Count == 0)
-            {
-                dependentsDictionary.Remove(sKey);
-            }
-            if (dependeesDictionary[tKey].Count == 0)
-            {
-                dependeesDictionary.Remove(tKey);
-            }
         }
 
 
