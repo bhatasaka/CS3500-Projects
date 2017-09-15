@@ -39,7 +39,6 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class DependencyGraph
     {
-        Hashtable dependecyTable;
         Dictionary<int, HashSet<String>> dependentsDictionary;
         Dictionary<int, HashSet<String>> dependeeDictionary;
         private int p_size;
@@ -51,7 +50,6 @@ namespace SpreadsheetUtilities
         {
             dependentsDictionary = new Dictionary<int, HashSet<String>>();
             dependeeDictionary = new Dictionary<int, HashSet<String>>();
-            dependecyTable = new Hashtable();
             p_size = 0;
         }
 
@@ -177,35 +175,6 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
-        }
-
-        private class DG_GraphNode
-        {
-            String graphNode;
-            HashSet<String> dependents;
-            HashSet<String> dependees;
-
-            public DG_GraphNode(String dependee, String dependent) //TODO check permission
-            {
-                graphNode = dependee;
-                dependents = new HashSet<string>();
-                AddDependent(dependent);
-            }
-
-            private void AddDependent(String dependent)
-            {
-                dependents.Add(dependent);
-            }
-
-            private void RemoveDependent(String dependent)
-            {
-                dependents.Remove(dependent);
-            }
-
-            public override int GetHashCode()
-            {
-                return graphNode.GetHashCode();
-            }
         }
     }
 }
