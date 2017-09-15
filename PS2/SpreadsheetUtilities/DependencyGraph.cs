@@ -40,6 +40,8 @@ namespace SpreadsheetUtilities
     public class DependencyGraph
     {
         Hashtable dependecyTable;
+        Dictionary<int, HashSet<String>> dependentsDictionary;
+        Dictionary<int, HashSet<String>> dependeeDictionary;
         private int p_size;
 
         /// <summary>
@@ -47,6 +49,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public DependencyGraph()
         {
+            dependentsDictionary = new Dictionary<int, HashSet<String>>();
+            dependeeDictionary = new Dictionary<int, HashSet<String>>();
             dependecyTable = new Hashtable();
             p_size = 0;
         }
@@ -121,14 +125,28 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
-            if (dependecyTable.ContainsKey(s.GetHashCode()))
+            //Add the dependent t to s
+            int sKey = s.GetHashCode();
+            if(dependentsDictionary.ContainsKey(sKey))
             {
-                dependecyTable.
+                dependentsDictionary[sKey].Add(t);
             }
             else
             {
-                DG_GraphNode node = new DG_GraphNode(s, t);
-                dependecyTable.Add(node.GetHashCode(), node);
+                HashSet<String> dependentsSet = new HashSet<string>() { t };
+                dependentsDictionary.Add(sKey, dependentsSet);
+            }
+
+            //Add the dependee s to t
+            int tKey = t.GetHashCode();
+            if (dependeeDictionary.ContainsKey(tKey))
+            {
+                dependeeDictionary[tKey].Add(s);
+            }
+            else
+            {
+                HashSet<String> dependeeSet = new HashSet<string>() { s };
+                dependeeDictionary.Add(tKey, dependeeSet);
             }
         }
 
@@ -140,6 +158,7 @@ namespace SpreadsheetUtilities
         /// <param name="t"></param>
         public void RemoveDependency(string s, string t)
         {
+            
         }
 
 

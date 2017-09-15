@@ -124,6 +124,28 @@ namespace PS2GradingTests
             Assert.AreEqual(0, t.Size);
         }
 
+        [TestMethod()]
+        public void TestDictionary()
+        {
+            Dictionary<int, HashSet<String>> dictionary = new Dictionary<int, HashSet<String>>();
+            String s = "hi";
+            String s1 = "hi";
+
+            HashSet<String> set = new HashSet<string>();
+
+            set.Add("1");
+
+            dictionary.Add(s.GetHashCode(), set);
+
+            Assert.IsTrue(dictionary.ContainsKey("hi".GetHashCode()));
+
+            dictionary["hi".GetHashCode()].Add("2");
+
+            Assert.IsTrue(dictionary["hi".GetHashCode()].Contains("2"));
+
+        }
+
+
 
         /**************************** SIMPLE NON-EMPTY TESTS ****************************/
 
