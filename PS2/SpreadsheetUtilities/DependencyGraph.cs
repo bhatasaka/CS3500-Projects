@@ -160,25 +160,35 @@ namespace SpreadsheetUtilities
 
             int sKey = s.GetHashCode();
             int tKey = t.GetHashCode();
-            if(DictionariesHaveKeys(sKey, tKey))
-            {
-                p_size++;
-                 //Add the dependent t to s
-                dependentsDictionary[sKey].Add(t);
+            bool dependentAddSucess;
+            bool dependeeAddSucess;
 
-                //Add the dependee s to t
-                dependeesDictionary[tKey].Add(s);
-            }
+            //Add the dependent t to s if s exists
+            if(dependentsDictionary.ContainsKey(sKey))
+                dependentAddSucess = dependentsDictionary[sKey].Add(t);
             else
             {
                 //Add the dependent t to a new set and store it with s
                 HashSet<String> dependentsSet = new HashSet<string>() { t };
                 dependentsDictionary.Add(sKey, dependentsSet);
+                dependentAddSucess = true;
+            }
 
+            //Add the dependee s to t if t exists
+            if (dependeesDictionary.ContainsKey(tKey))
+                dependeeAddSucess = dependeesDictionary[tKey].Add(s);
+            else
+            {
                 //Add the dependee s to a new set and store it with t
                 HashSet<String> dependeeSet = new HashSet<string>() { s };
                 dependeesDictionary.Add(tKey, dependeeSet);
+                dependeeAddSucess = true;
             }
+
+            //Verifies that the numbers were not already in the set before
+            //incrementing the size
+            if (dependentAddSucess && dependeeAddSucess)
+                p_size++;
         }
 
 
@@ -194,17 +204,25 @@ namespace SpreadsheetUtilities
 
             if (DictionariesHaveKeys(sKey, tKey))
             {
-                dependentsDictionary[sKey].Remove(t);
-                dependeesDictionary[tKey].Remove(s);
+                bool dependentRemoveSucess;
+                bool dependeeRemoveSucess;
 
-                if(dependentsDictionary[sKey].Count == 0)
-                {
-                    dependentsDictionary.Remove(sKey);
-                }
-                if(dependeesDictionary[tKey].Count == 0)
-                {
-                    dependeesDictionary.Remove(tKey);
-                }
+                dependentRemoveSucess = dependentsDictionary[sKey].Remove(t);
+                dependeeRemoveSucess = dependeesDictionary[tKey].Remove(s);
+
+                if(dependentRemoveSucess && dependeeRemoveSucess)
+                    p_size--;
+            }
+
+            //Checks to see if the term has no dependents/dependees
+            //and if so, remove it from the appropriate dictionary
+            if (dependentsDictionary[sKey].Count == 0)
+            {
+                dependentsDictionary.Remove(sKey);
+            }
+            if (dependeesDictionary[tKey].Count == 0)
+            {
+                dependeesDictionary.Remove(tKey);
             }
         }
 
