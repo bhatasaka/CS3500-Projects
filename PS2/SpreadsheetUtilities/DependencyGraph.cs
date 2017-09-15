@@ -40,7 +40,7 @@ namespace SpreadsheetUtilities
     public class DependencyGraph
     {
         Dictionary<int, HashSet<String>> dependentsDictionary;
-        Dictionary<int, HashSet<String>> dependeeDictionary;
+        Dictionary<int, HashSet<String>> dependeesDictionary;
         private int p_size;
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace SpreadsheetUtilities
         public DependencyGraph()
         {
             dependentsDictionary = new Dictionary<int, HashSet<String>>();
-            dependeeDictionary = new Dictionary<int, HashSet<String>>();
+            dependeesDictionary = new Dictionary<int, HashSet<String>>();
             p_size = 0;
         }
 
@@ -72,7 +72,14 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int this[string s]
         {
-            get { return 0; }
+            get
+            {
+                int sKey = s.GetHashCode();
+                if (dependeesDictionary.ContainsKey(sKey))
+                    return dependeesDictionary[sKey].Count;
+
+                return 0;
+            }
         }
 
 
@@ -81,6 +88,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
+            int sKey = s.GetHashCode();
+            if (dependentsDictionary.ContainsKey(sKey))
+                return true;
+
             return false;
         }
 
@@ -90,6 +101,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependees(string s)
         {
+            int sKey = s.GetHashCode();
+            if (dependeesDictionary.ContainsKey(sKey))
+                return true;
+
             return false;
         }
 
@@ -99,7 +114,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            int sKey = s.GetHashCode();
+            if(dependentsDictionary.ContainsKey(sKey))
+            {
+                HashSet<String> setCopy = dependentsDictionary[sKey];
+
+                return setCopy;
+            }
+            
+            //If s doesn't have any dependents, then return an empty list
+            return new List<String>();
         }
 
         /// <summary>
@@ -107,7 +131,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            int sKey = s.GetHashCode();
+            if (dependeesDictionary.ContainsKey(sKey))
+            {
+                HashSet<String> setCopy = dependeesDictionary[sKey];
+
+                return setCopy;
+            }
+
+            //If s doesn't have any dependees, then return an empty list
+            return new List<String>();
         }
 
 
@@ -123,28 +156,28 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
-            //Add the dependent t to s
+            
+
             int sKey = s.GetHashCode();
-            if(dependentsDictionary.ContainsKey(sKey))
+            int tKey = t.GetHashCode();
+            if(DictionariesHaveKeys(sKey, tKey))
             {
+                p_size++;
+                 //Add the dependent t to s
                 dependentsDictionary[sKey].Add(t);
+
+                //Add the dependee s to t
+                dependeesDictionary[tKey].Add(s);
             }
             else
             {
+                //Add the dependent t to a new set and store it with s
                 HashSet<String> dependentsSet = new HashSet<string>() { t };
                 dependentsDictionary.Add(sKey, dependentsSet);
-            }
 
-            //Add the dependee s to t
-            int tKey = t.GetHashCode();
-            if (dependeeDictionary.ContainsKey(tKey))
-            {
-                dependeeDictionary[tKey].Add(s);
-            }
-            else
-            {
+                //Add the dependee s to a new set and store it with t
                 HashSet<String> dependeeSet = new HashSet<string>() { s };
-                dependeeDictionary.Add(tKey, dependeeSet);
+                dependeesDictionary.Add(tKey, dependeeSet);
             }
         }
 
@@ -156,7 +189,23 @@ namespace SpreadsheetUtilities
         /// <param name="t"></param>
         public void RemoveDependency(string s, string t)
         {
-            
+            int sKey = s.GetHashCode();
+            int tKey = t.GetHashCode();
+
+            if (DictionariesHaveKeys(sKey, tKey))
+            {
+                dependentsDictionary[sKey].Remove(t);
+                dependeesDictionary[tKey].Remove(s);
+
+                if(dependentsDictionary[sKey].Count == 0)
+                {
+                    dependentsDictionary.Remove(sKey);
+                }
+                if(dependeesDictionary[tKey].Count == 0)
+                {
+                    dependeesDictionary.Remove(tKey);
+                }
+            }
         }
 
 
@@ -175,6 +224,15 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+        }
+
+        private bool DictionariesHaveKeys(int sKey, int tKey)
+        {
+            if (dependentsDictionary.ContainsKey(sKey) && dependeesDictionary.ContainsKey(tKey))
+            {
+                return true;
+            }
+            else return false;
         }
     }
 }
