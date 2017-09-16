@@ -4,6 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+/// <summary>
+/// Completed by: Bryan Hatasaka
+/// u1028471
+/// </summary>
 namespace PS2GradingTests
 {
     /// <summary>

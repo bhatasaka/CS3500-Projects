@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+/// <summary>
+/// Completed By: Bryan Hatasaka
+/// u1028471
+/// </summary>
 namespace SpreadsheetUtilities
 {
 
