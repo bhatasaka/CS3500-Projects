@@ -234,6 +234,18 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            int sKey = s.GetHashCode();
+
+            if (dependentsDictionary.ContainsKey(sKey))
+            {
+                dependentsDictionary[sKey].Clear();
+                foreach(string dependent in newDependents)
+                {
+                    dependentsDictionary[sKey].Add(dependent);
+                }
+            }
+
+
         }
 
 
@@ -243,6 +255,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+            int sKey = s.GetHashCode();
+
+            if (dependeesDictionary.ContainsKey(sKey))
+            {
+                dependeesDictionary[sKey].Clear();
+                foreach (string dependee in newDependees)
+                {
+                    dependeesDictionary[sKey].Add(dependee);
+                }
+            }
         }
 
         private bool DictionariesHaveKeys(int sKey, int tKey)

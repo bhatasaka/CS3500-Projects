@@ -143,6 +143,10 @@ namespace PS2GradingTests
 
             Assert.IsTrue(dictionary["hi".GetHashCode()].Contains("2"));
 
+            dictionary["hi".GetHashCode()].Clear();
+
+            Assert.IsTrue(dictionary.ContainsKey("hi".GetHashCode()));
+
         }
 
 
@@ -389,6 +393,7 @@ namespace PS2GradingTests
                     dees[j].Remove(letters[i]);
                 }
             }
+
 
             // Replace a bunch of dependents
             for (int i = 0; i < SIZE; i += 4)
