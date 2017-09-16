@@ -124,32 +124,27 @@ namespace PS2GradingTests
             Assert.AreEqual(0, t.Size);
         }
 
-        [TestMethod()]
-        public void TestDictionary()
+        [TestMethod]
+        public void TestEmptyReplaceDependents()
         {
-            Dictionary<int, HashSet<String>> dictionary = new Dictionary<int, HashSet<String>>();
-            String s = "hi";
-            String s1 = "hi";
+            DependencyGraph dg = new DependencyGraph();
 
-            HashSet<String> set = new HashSet<string>();
+            dg.ReplaceDependents("a", new HashSet<string> { "b" });
 
-            set.Add("1");
-
-            dictionary.Add(s.GetHashCode(), set);
-
-            Assert.IsTrue(dictionary.ContainsKey("hi".GetHashCode()));
-
-            dictionary["hi".GetHashCode()].Add("2");
-
-            Assert.IsTrue(dictionary["hi".GetHashCode()].Contains("2"));
-
-            dictionary["hi".GetHashCode()].Clear();
-
-            Assert.IsTrue(dictionary.ContainsKey("hi".GetHashCode()));
-
+            Assert.AreEqual(1, dg.Size);
+            Assert.IsTrue(new HashSet<string> { "a" }.SetEquals(dg.GetDependees("b")));
         }
 
+        [TestMethod]
+        public void TestEmptyReplaceDependees()
+        {
+            DependencyGraph dg = new DependencyGraph();
 
+            dg.ReplaceDependees("b", new HashSet<string> { "a" });
+
+            Assert.AreEqual(1, dg.Size);
+            Assert.IsTrue(new HashSet<string> { "b" }.SetEquals(dg.GetDependents("a")));
+        }
 
         /**************************** SIMPLE NON-EMPTY TESTS ****************************/
 

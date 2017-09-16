@@ -156,8 +156,6 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
-            
-
             int sKey = s.GetHashCode();
             int tKey = t.GetHashCode();
             bool dependentAddSucess;
@@ -224,7 +222,6 @@ namespace SpreadsheetUtilities
                     dependeesDictionary.Remove(tKey);
                 }
             }
-
         }
 
 
@@ -238,14 +235,19 @@ namespace SpreadsheetUtilities
 
             if (dependentsDictionary.ContainsKey(sKey))
             {
-                dependentsDictionary[sKey].Clear();
-                foreach(string dependent in newDependents)
+                //Remove s as the dependee from all of s's dependents
+                HashSet<String> set = new HashSet<String>(dependentsDictionary[sKey]);
+                foreach(String dependent in set)
                 {
-                    dependentsDictionary[sKey].Add(dependent);
+                    this.RemoveDependency(s, dependent);
                 }
             }
 
-
+            //Add all of the dependents to s
+            foreach(string dependent in newDependents)
+            {
+                this.AddDependency(s, dependent);
+            }
         }
 
 
@@ -259,11 +261,18 @@ namespace SpreadsheetUtilities
 
             if (dependeesDictionary.ContainsKey(sKey))
             {
-                dependeesDictionary[sKey].Clear();
-                foreach (string dependee in newDependees)
+                //Remove s as the dependent from all of s's dependees
+                HashSet<String> dependees = new HashSet<string>(dependeesDictionary[sKey]);
+                foreach(String dependee in dependees)
                 {
-                    dependeesDictionary[sKey].Add(dependee);
+                    RemoveDependency(dependee, s);
                 }
+            }
+
+            //Add s as the dependent to all of the new dependees
+            foreach (string dependee in newDependees)
+            {
+                this.AddDependency(dependee, s);
             }
         }
 
