@@ -275,14 +275,24 @@ namespace SpreadsheetUtilities
                 this.AddDependency(dependee, s);
             }
         }
-
+        
+        /// <summary>
+        /// Checks if the dependentsDictionary contains the sKey
+        /// and if the dependeesDictionary contains the tKey.
+        /// 
+        /// Returns true if both dictionaries contain the keys.
+        /// False otherwise.
+        /// </summary>
+        /// <param name="sKey"></param>
+        /// <param name="tKey"></param>
+        /// <returns></returns>
         private bool DictionariesHaveKeys(int sKey, int tKey)
         {
             if (dependentsDictionary.ContainsKey(sKey) && dependeesDictionary.ContainsKey(tKey))
             {
                 return true;
             }
-            else return false;
+            return false;
         }
     }
 }

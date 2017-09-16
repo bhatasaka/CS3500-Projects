@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace PS2GradingTests
 {
@@ -146,6 +147,28 @@ namespace PS2GradingTests
             Assert.IsTrue(new HashSet<string> { "b" }.SetEquals(dg.GetDependents("a")));
         }
 
+        /// <summary>
+        ///Tests that getDependents will not throw an exception when
+        ///trying to get dependents for a string with no dependents
+        ///</summary>
+        [TestMethod()]
+        public void TestGetDependentsEmpty()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.GetDependents("s");
+        }
+
+        /// <summary>
+        ///Tests that getDependees will not throw an exception when
+        ///trying to get dependees for a string with no dependees
+        ///</summary>
+        [TestMethod()]
+        public void TestGetDependeesEmpty()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.GetDependees("s");
+        }
+
         /**************************** SIMPLE NON-EMPTY TESTS ****************************/
 
         /// <summary>
@@ -279,6 +302,52 @@ namespace PS2GradingTests
             t.ReplaceDependees("c", new HashSet<string>() { "x", "y", "z" });
             HashSet<String> cDees = new HashSet<string>(t.GetDependees("c"));
             Assert.IsTrue(cDees.SetEquals(new HashSet<string>() { "x", "y", "z" }));
+        }
+
+        /// <summary>
+        ///Removing from a DG then checking dependees sizes
+        ///</summary>
+        [TestMethod()]
+        public void RemoveThenCheckDependeesSize()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "b");
+            t.AddDependency("a", "c");
+            t.AddDependency("d", "c");
+            t.AddDependency("e", "c");
+            t.RemoveDependency("a", "c");
+            Assert.AreEqual(2, t["c"]);
+        }
+
+        /// <summary>
+        ///Removing all dependents from a DG then checking hasDependents
+        ///</summary>
+        [TestMethod()]
+        public void RemoveDependentsThenCheckHasDependents()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "b");
+            t.AddDependency("a", "c");
+            t.AddDependency("d", "c");
+            t.AddDependency("e", "c");
+            t.RemoveDependency("a", "b");
+            t.RemoveDependency("a", "c");
+            Assert.IsFalse(t.HasDependents("a"));
+        }
+
+        /// <summary>
+        ///Removing all dependees from a DG then checking hasDependees
+        ///</summary>
+        [TestMethod()]
+        public void RemoveDependeesThenCheckHasDependees()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "b");
+            t.AddDependency("a", "c");
+            t.AddDependency("d", "c");
+            t.AddDependency("e", "c");
+            t.RemoveDependency("a", "b");
+            Assert.IsFalse(t.HasDependees("b"));
         }
 
         // ************************** STRESS TESTS ******************************** //
@@ -499,6 +568,220 @@ namespace PS2GradingTests
                 Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
                 Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
             }
+        }
+
+        // ********************************** A FOURTH STESS TEST ******************** //
+        /// <summary>
+        ///Using lots of data with replacement, combining replace dependents and replace dependees
+        ///</summary>
+        [TestMethod()]
+        public void StressTestCombined()
+        {
+            // Dependency graph
+            DependencyGraph t = new DependencyGraph();
+
+            // A bunch of strings to use
+            const int SIZE = 100;
+            string[] letters = new string[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                letters[i] = ("" + (char)('a' + i));
+            }
+
+            // The correct answers
+            HashSet<string>[] dents = new HashSet<string>[SIZE];
+            HashSet<string>[] dees = new HashSet<string>[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                dents[i] = new HashSet<string>();
+                dees[i] = new HashSet<string>();
+            }
+
+            // Add a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j++)
+                {
+                    t.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // Remove a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 2; j < SIZE; j += 2)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Replace a bunch of dependents
+            for (int i = 0; i < SIZE; i += 4)
+            {
+                HashSet<string> newDents = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 7)
+                {
+                    newDents.Add(letters[j]);
+                }
+                t.ReplaceDependents(letters[i], newDents);
+
+                foreach (string s in dents[i])
+                {
+                    dees[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDents)
+                {
+                    dees[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dents[i] = newDents;
+            }
+
+            // Replace a bunch of dependees
+            for (int i = 0; i < SIZE; i += 4)
+            {
+                HashSet<string> newDees = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 7)
+                {
+                    newDees.Add(letters[j]);
+                }
+                t.ReplaceDependees(letters[i], newDees);
+
+                foreach (string s in dees[i])
+                {
+                    dents[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDees)
+                {
+                    dents[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dees[i] = newDees;
+            }
+
+            // Make sure everything is right
+            for (int i = 0; i < SIZE; i++)
+            {
+                Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+                Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+            }
+        }
+
+        // ********************************** A FIFTH STESS TEST ******************** //
+        /// <summary>
+        ///Using lots of data with replacement, combining replace dependents and replace dependees
+        ///Large size to make sure that methods run in an aceptable amount of time
+        ///</summary>
+        [TestMethod()]
+        public void StressTestCombinedLargeSize()
+        {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            // Dependency graph
+            DependencyGraph t = new DependencyGraph();
+
+            // A bunch of strings to use
+            const int SIZE = 2000;
+            string[] letters = new string[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                letters[i] = ("" + (char)('a' + i));
+            }
+
+            // The correct answers
+            HashSet<string>[] dents = new HashSet<string>[SIZE];
+            HashSet<string>[] dees = new HashSet<string>[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                dents[i] = new HashSet<string>();
+                dees[i] = new HashSet<string>();
+            }
+
+            // Add a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j++)
+                {
+                    t.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // Remove a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 2; j < SIZE; j += 2)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Replace a bunch of dependents
+            for (int i = 0; i < SIZE; i += 4)
+            {
+                HashSet<string> newDents = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 7)
+                {
+                    newDents.Add(letters[j]);
+                }
+                t.ReplaceDependents(letters[i], newDents);
+
+                foreach (string s in dents[i])
+                {
+                    dees[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDents)
+                {
+                    dees[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dents[i] = newDents;
+            }
+
+            // Replace a bunch of dependees
+            for (int i = 0; i < SIZE; i += 4)
+            {
+                HashSet<string> newDees = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 7)
+                {
+                    newDees.Add(letters[j]);
+                }
+                t.ReplaceDependees(letters[i], newDees);
+
+                foreach (string s in dees[i])
+                {
+                    dents[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDees)
+                {
+                    dents[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dees[i] = newDees;
+            }
+
+            // Make sure everything is right
+            for (int i = 0; i < SIZE; i++)
+            {
+                Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+                Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+            }
+
+            stopWatch.Stop();
+            TimeSpan time = stopWatch.Elapsed;
+            Assert.IsTrue(time.Seconds < 5);
         }
     }
 }
