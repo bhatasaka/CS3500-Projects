@@ -193,6 +193,7 @@ namespace FormulaEvaluator
                 if (valueStack.Count < 2)
                     throw malformedException;
 
+
                 String op = operatorStack.Pop();
                 int postOpvValue = valueStack.Pop();
                 int preOpValue = valueStack.Pop();
