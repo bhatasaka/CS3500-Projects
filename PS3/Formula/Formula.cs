@@ -45,6 +45,8 @@ namespace SpreadsheetUtilities
     public class Formula
     {
         private String normalizedExp;
+        private delegate String normalize(String var);
+        private delegate bool isValid(String var);
         
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
@@ -84,7 +86,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            
+            VerifySyntax(formula, normalize, isValid);
+
         }
 
         /// <summary>
@@ -410,7 +413,7 @@ namespace SpreadsheetUtilities
         /// of a letter or underscore followed by zero or more letters, underscores, or digits
         /// </summary>
         /// <param name="variable"></param>
-        private static void VerifyVariable(String variable)
+        private static bool VerifyVariable(String variable)
         {
             bool reachedNumber = false;
             for (int letterPos = 1; letterPos < variable.Length; letterPos++)
@@ -432,6 +435,7 @@ namespace SpreadsheetUtilities
                     //throw malformedException; TODO
                 }
             }
+            return true;
         }
 
         /// <summary>
@@ -440,26 +444,51 @@ namespace SpreadsheetUtilities
         /// </summary>
         /// <param name="formula"></param>
         /// <returns></returns>
-        private void VerifySyntax(string formula)
+        private static void VerifySyntax(string formula, normalize normalizer, isValid validator)
         {
-            foreach(String token in GetTokens(formula))
+            int openingParenthesis = 0;
+            int closingParenthesis = 0;
+            StringBuilder finalString = new StringBuilder();
+            IEnumerable<string> tokens = GetTokens(formula);
+            
+            foreach (String token in tokens)
             {
                 if (!IsValidToken(token))
                 {
                     throw new FormulaFormatException("A non-valid token was found, check the expression, " +
                         "valid tokens are: (, ), +, -, *, /, variables, and floating-point numbers");
                 }
-                
+                else if (tokens.Count() == 0)
+                {
+                    if (token.IsOperator())
+                        throw new FormulaFormatException("Non-valid starting character found. The formula " +
+                            "must start with a number, a variable or an opening parenthesis");
+                }
+                else if (token.Equals("{"))
+                {
+                    openingParenthesis++;
+                }
+                else if (token.Equals(")"))
+                {
+                    closingParenthesis++;
+                    if(closingParenthesis > openingParenthesis)
+                    {
+                        throw new FormulaFormatException("Unequal parenthesis found. Check for equal" +
+                            "numbers of closing and opening parentheses");
+                    }
+                }
+
             }
         }
 
-        private bool IsValidToken(String token)
+        private static bool IsValidToken(String token)
         {
             if (Double.TryParse(token, out double number))
                 return true;
-            else if (token[0].Equals("_") || Char.IsLetter(token[0]))
+            else if (token[0].Equals('_') || Char.IsLetter(token[0]))
             {
-                VerifyVariable(token);
+                if (!VerifyVariable(token))
+                    return false;
                 return true;
             }
             else
@@ -471,8 +500,8 @@ namespace SpreadsheetUtilities
                         return true;
                 }
 
-                // If the token doesn't equal a number, a valid variable or an operator then
-                // it is not a valid token
+                // If the token doesn't equal a number, a valid variable, an operator or a
+                //parenthesis, then it is not a valid token
                 return false;
             }
 
@@ -534,6 +563,27 @@ namespace SpreadsheetUtilities
                 return true;
             else
                 return false;
+        }
+    }
+
+    public static class PS3StringExtension
+    {
+        public static bool IsOperator(this String str)
+        {
+            switch (str)
+            {
+                case ("*"):
+                    return true;
+                case ("/"):
+                    return true;
+                case ("+"):
+                    return true;
+                    break;
+                case ("-"):
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

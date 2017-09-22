@@ -200,7 +200,7 @@ namespace FormulaTester
         }
 
         [TestMethod]
-        public void TestEvaluateSimpleOrderOfOperatiosn()
+        public void TestEvaluateSimpleOrderOfOperations()
         {
             Formula form = new Formula("1+6.4*4");
 
@@ -210,7 +210,6 @@ namespace FormulaTester
 
             Assert.AreEqual(26.6, result);
         }
-
 
         // ==============================================
         // Private function tests
@@ -252,5 +251,24 @@ namespace FormulaTester
                 Assert.AreEqual(false, formAcessor.Invoke("IsValidToken", new String[1] { token }));
             }
         }
+
+        [TestMethod]
+        public void TestIsValidTokenSimpleVar()
+        {
+            Formula form = new Formula("0.0");
+            PrivateObject formAcessor = new PrivateObject(form);
+
+            Assert.AreEqual(true, formAcessor.Invoke("IsValidToken", new String[1] { "_A" }));
+        }
+
+        [TestMethod]
+        public void TestVerifyVariableSimpleVar()
+        {
+            Formula form = new Formula("0.0");
+            PrivateObject formAcessor = new PrivateObject(form);
+
+            Assert.AreEqual(true, formAcessor.Invoke("VerifyVariable", new String[1] { "_A" }));
+        }
+
     }
 }
