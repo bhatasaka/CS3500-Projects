@@ -45,8 +45,6 @@ namespace SpreadsheetUtilities
     public class Formula
     {
         private String normalizedExp;
-        private delegate String normalize(String var);
-        private delegate bool isValid(String var);
         
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
@@ -86,8 +84,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            VerifySyntax(formula, normalize, isValid);
-
+            normalizedExp = VerifySyntax(formula, normalize, isValid);
         }
 
         /// <summary>
@@ -444,30 +441,53 @@ namespace SpreadsheetUtilities
         /// </summary>
         /// <param name="formula"></param>
         /// <returns></returns>
-        private static void VerifySyntax(string formula, normalize normalizer, isValid validator)
+        private static String VerifySyntax(string formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
             int openingParenthesis = 0;
             int closingParenthesis = 0;
             StringBuilder finalString = new StringBuilder();
             IEnumerable<string> tokens = GetTokens(formula);
-            
+            String lastToken = "";
+
+            //Used to keep track of if a token follows an opening parenthesis or an operator.
+            //Only a number variable or opening parenthesis can follow.
+            bool followingParenthesis = false;
+
+            //Used to keep track of if a token follows a number, a variable or a closing parenthesis.
+            //Only an operator or a closing parenthesis can follow
+            bool followingExtra = false;
+
             foreach (String token in tokens)
             {
+                lastToken = token;
+                //Checking the first token of the formula to be a number, variable or (
+                if (tokens.Count() == 0) //TODO
+                {
+                    if (token.IsOperator() || token.Equals(")"))
+                    {
+                        throw new FormulaFormatException("Non-valid starting character found. The formula " +
+                            "must start with a number, a variable or an opening parenthesis");
+                    }
+                }
+
+
                 if (!IsValidToken(token))
                 {
                     throw new FormulaFormatException("A non-valid token was found, check the expression, " +
                         "valid tokens are: (, ), +, -, *, /, variables, and floating-point numbers");
                 }
-                else if (tokens.Count() == 0)
-                {
-                    if (token.IsOperator())
-                        throw new FormulaFormatException("Non-valid starting character found. The formula " +
-                            "must start with a number, a variable or an opening parenthesis");
-                }
-                else if (token.Equals("{"))
+                else if (token.Equals("("))
                 {
                     openingParenthesis++;
+                    followingParenthesis = true;
+
+                    if (followingExtra)
+                    {
+                        throw new FormulaFormatException("A ('' was found following a number, a variable or closing parenthesis." +
+                            " Only operators or closing parenthesis can follow a number, variable or closing parenthesis.");
+                    }
                 }
+                //Make sure that the parentheses are balanced
                 else if (token.Equals(")"))
                 {
                     closingParenthesis++;
@@ -476,16 +496,82 @@ namespace SpreadsheetUtilities
                         throw new FormulaFormatException("Unequal parenthesis found. Check for equal" +
                             "numbers of closing and opening parentheses");
                     }
+
+                    if (followingParenthesis)
+                    {
+                        throw new FormulaFormatException("An ')' was found following an operator/openinng parenthesis." +
+                            "Only numbers, variables and opening parenthesis can follow operators/opening parentheses.");
+                    }
+                    followingExtra = true;
+                }
+                else if (token.IsOperator())
+                {
+                    if (followingParenthesis)
+                    {
+                        throw new FormulaFormatException("An opperator was found following an operator/openinng parenthesis." +
+                            "Only numbers, variables and opening parenthesis can follow operators/opening parentheses.");
+                    }
+                    else
+                        followingParenthesis = true;
+
+                    followingExtra = false;
+                }
+                else if (token.StartsAsVar())
+                {
+                    //Can be done because if the variable makes it this far, it has valid syntax
+                    finalString.Append(normalize(token));
+                    if (isValid(token))
+                    {
+                        throw new FormulaFormatException("The variable did not pass the validator test. Check for" +
+                            "proper syntax as defined by the passed validator or check the validator.");
+                    }
+
+                    followingParenthesis = false;
+                    if (followingExtra)
+                    {
+                        throw new FormulaFormatException("A variable was found following a number, a variable or a " +
+                            "closing parenthesis. Check for a variable immediately following one of those.");
+                    }
+                    else
+                        followingExtra = true;
+
+                    //Continue because the variable is already appended to the final string
+                    continue;
+                }
+                //If the token is a number
+                else
+                {
+                    followingParenthesis = false;
+                    if (followingExtra)
+                    {
+                        throw new FormulaFormatException("A number was found following a number, a variable or a " +
+                            "closing parenthesis. Check for a variable immediately following one of those.");
+                    }
+                    else
+                        followingExtra = true;
                 }
 
+                finalString.Append(token);
             }
+            if(lastToken == null)
+            {
+                throw new FormulaFormatException("No tokens found, the formula must contain at least 1 token.");
+            }
+            else if (lastToken.IsOperator() || lastToken.Equals("("))
+            {
+                throw new FormulaFormatException("A non-valid ending character was found. Check the expression" +
+                    "for an operator or opening parenthesis at the end.");
+            }
+
+            return finalString.ToString();
+
         }
 
         private static bool IsValidToken(String token)
         {
             if (Double.TryParse(token, out double number))
                 return true;
-            else if (token[0].Equals('_') || Char.IsLetter(token[0]))
+            else if (token.StartsAsVar())
             {
                 if (!VerifyVariable(token))
                     return false;
@@ -578,12 +664,20 @@ namespace SpreadsheetUtilities
                     return true;
                 case ("+"):
                     return true;
-                    break;
                 case ("-"):
                     return true;
                 default:
                     return false;
             }
+        }
+
+        public static bool StartsAsVar(this String str)
+        {
+            if(str[0].Equals('_') || Char.IsLetter(str[0]))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
