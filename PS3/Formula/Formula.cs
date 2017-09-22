@@ -84,6 +84,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
+            
         }
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace SpreadsheetUtilities
                 //If the token is an integer
                 else if (Double.TryParse(token, out double parsedDouble))
                 {
-                    HandleInt(parsedDouble, operators, values);
+                    HandleDouble(parsedDouble, operators, values);
                 }
 
                 //If the token is a variable (checks to see if the first character is a letter)
@@ -144,7 +145,7 @@ namespace SpreadsheetUtilities
                     try
                     {
                         parsedDouble = lookup(token);
-                        HandleInt(parsedDouble, operators, values);
+                        HandleDouble(parsedDouble, operators, values);
                     }
                     catch (Exception)
                     {
@@ -192,7 +193,7 @@ namespace SpreadsheetUtilities
 
                     //If there is a value on the stack, pop it and hand it over to the int handling function
                     if (values.Count > 0)
-                        HandleInt(values.Pop(), operators, values);
+                        HandleDouble(values.Pop(), operators, values);
                 }
 
             }
@@ -334,7 +335,7 @@ namespace SpreadsheetUtilities
         }
 
         /// <summary>
-        /// Will perform the required actions for an integer in the formula evaluator.
+        /// Will perform the required actions for a double in the formula evaluator.
         /// 
         /// If * or / is at the top of the operator stack, will pop the value stack and pop the operator stack, 
         /// and apply the popped operator to the popped number and passed number. Pushes the result onto the value stack.
@@ -343,7 +344,7 @@ namespace SpreadsheetUtilities
         /// <param name="number"></param>
         /// <param name="operatorStack"></param>
         /// <param name="valueStack"></param>
-        private static void HandleInt(double number, Stack<String> operatorStack, Stack<double> valueStack)
+        private static void HandleDouble(double number, Stack<String> operatorStack, Stack<double> valueStack)
         {
             if (operatorStack.IsOnTop<String>("*") || operatorStack.IsOnTop<String>("/"))
             {
@@ -405,8 +406,8 @@ namespace SpreadsheetUtilities
         }
 
         /// <summary>
-        /// Makes sure that the variable follows the correct format. A variable should be one or more letters followed
-        /// by one or more letters. If it's not, an exception is thrown
+        /// Makes sure that the variable follows the correct format. A variable consists
+        /// of a letter or underscore followed by zero or more letters, underscores, or digits
         /// </summary>
         /// <param name="variable"></param>
         private static void VerifyVariable(String variable)
@@ -416,7 +417,11 @@ namespace SpreadsheetUtilities
             {
                 char character = variable[letterPos];
 
-                if (reachedNumber && !Char.IsNumber(character))
+                if (character.Equals("_"))
+                {
+                    continue;
+                }
+                else if (reachedNumber && !Char.IsNumber(character))
                 {
                     //throw malformedException; TODO
                 }
@@ -427,11 +432,50 @@ namespace SpreadsheetUtilities
                     //throw malformedException; TODO
                 }
             }
+        }
 
-            if (!reachedNumber)
+        /// <summary>
+        /// This method verifies that the syntax of the passed formula follows the guidelines
+        /// for a formula object written in standard infix notation as is defined in the object header.
+        /// </summary>
+        /// <param name="formula"></param>
+        /// <returns></returns>
+        private void VerifySyntax(string formula)
+        {
+            foreach(String token in GetTokens(formula))
             {
-                //throw malformedException;TODO
+                if (!IsValidToken(token))
+                {
+                    throw new FormulaFormatException("A non-valid token was found, check the expression, " +
+                        "valid tokens are: (, ), +, -, *, /, variables, and floating-point numbers");
+                }
+                
             }
+        }
+
+        private bool IsValidToken(String token)
+        {
+            if (Double.TryParse(token, out double number))
+                return true;
+            else if (token[0].Equals("_") || Char.IsLetter(token[0]))
+            {
+                VerifyVariable(token);
+                return true;
+            }
+            else
+            {
+                String[] operators = { "(", ")", "+", "-", "*", "/" };
+                foreach(String op in operators)
+                {
+                    if (token.Equals(op))
+                        return true;
+                }
+
+                // If the token doesn't equal a number, a valid variable or an operator then
+                // it is not a valid token
+                return false;
+            }
+
         }
     }
 

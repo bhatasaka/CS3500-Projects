@@ -210,5 +210,47 @@ namespace FormulaTester
 
             Assert.AreEqual(26.6, result);
         }
+
+
+        // ==============================================
+        // Private function tests
+        //===============================================
+
+        [TestMethod]
+        public void TestIsValidTokenDouble()
+        {
+            Formula form = new Formula("0.0");
+            PrivateObject formAcessor = new PrivateObject(form);
+
+           
+            Assert.AreEqual(true, formAcessor.Invoke("IsValidToken", new String[1] { "1.0" }));
+        }
+
+        [TestMethod]
+        public void TestIsValidTokenOperator()
+        {
+            Formula form = new Formula("0.0");
+            PrivateObject formAcessor = new PrivateObject(form);
+
+            String[] operators = { "(", ")", "+", "-", "*", "/" };
+            foreach(String op in operators)
+            {
+                Assert.AreEqual(true, formAcessor.Invoke("IsValidToken", new String[1] { op }));
+            }
+        }
+
+        [TestMethod]
+        public void TestIsValidTokenNonValidTokens()
+        {
+            Formula form = new Formula("0.0");
+            PrivateObject formAcessor = new PrivateObject(form);
+
+            String token;
+            for(int ASCII_value = 0; ASCII_value <= 39; ASCII_value++)
+            {
+                token = Char.ConvertFromUtf32(ASCII_value);
+                Assert.AreEqual(false, formAcessor.Invoke("IsValidToken", new String[1] { token }));
+            }
+        }
     }
 }
