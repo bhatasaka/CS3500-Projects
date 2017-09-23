@@ -119,11 +119,8 @@ namespace SpreadsheetUtilities
             //Traverses through the string
             foreach (String token in GetTokens(normalizedExp))
             {
-                if (token.Equals(""))
-                    continue;
-
                 //If the token is an integer
-                else if (Double.TryParse(token, out double parsedDouble))
+                if (Double.TryParse(token, out double parsedDouble))
                 {
                     if (!HandleDouble(parsedDouble, operators, values))
                         return divideByZero;
@@ -285,10 +282,11 @@ namespace SpreadsheetUtilities
             foreach(String thisToken in thisQueue)
             {
                 otherToken = otherQueue.Dequeue();
-                if (Double.TryParse(thisToken, out thisNumber).ToString() !=
-                    Double.TryParse(otherToken, out otherNumber).ToString())
+                if (Double.TryParse(thisToken, out thisNumber) &&
+                    Double.TryParse(otherToken, out otherNumber))
                 {
-                    return false;
+                    if(!(thisNumber.ToString().Equals(otherNumber.ToString())))
+                        return false;
                 }
                 else if (!(thisToken.Equals(otherToken)))
                     return false;
@@ -441,10 +439,8 @@ namespace SpreadsheetUtilities
                     return false;
                 }
                 else if (!reachedNumber && Char.IsNumber(character))
-                    reachedNumber = true;
-                else if (!reachedNumber && !Char.IsLetter(character))
                 {
-                    return false;
+                    reachedNumber = true;
                 }
             }
             return true;

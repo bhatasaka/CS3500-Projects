@@ -217,6 +217,66 @@ namespace FormulaTester
 
         //Testing invalid evaluates
 
+        [TestMethod]
+        public void TestEvaluateDivideByZero()
+        {
+            Formula form = new Formula("1/0");
+
+            object result = form.Evaluate(s => 1);
+
+
+            Assert.IsTrue(result is FormulaError);
+
+            FormulaError error = (FormulaError)result;
+
+            Assert.IsTrue(error.Reason is String);
+        }
+
+        [TestMethod]
+        public void TestEvaluateDivideByZeroVar()
+        {
+            Formula form = new Formula("1/A6");
+
+            object result = form.Evaluate(s => 0);
+
+
+            Assert.IsTrue(result is FormulaError);
+
+            FormulaError error = (FormulaError)result;
+
+            Assert.IsTrue(error.Reason is String);
+        }
+
+        [TestMethod]
+        public void TestEvaluateDivideByZeroEnd()
+        {
+            Formula form = new Formula("1/(3-3)");
+
+            object result = form.Evaluate(s => 0);
+
+
+            Assert.IsTrue(result is FormulaError);
+
+            FormulaError error = (FormulaError)result;
+
+            Assert.IsTrue(error.Reason is String);
+        }
+
+        [TestMethod]
+        public void TestEvaluateBadLookup()
+        {
+            Formula form = new Formula("A6*6");
+
+            object result = form.Evaluate(lookup);
+
+            double lookup(String str)
+            {
+                throw new ArgumentException();
+            }
+
+            Assert.IsTrue(result is FormulaError);
+        }
+
         //======================================
         //Additional testing for the constructor
         //======================================
@@ -269,6 +329,12 @@ namespace FormulaTester
                 else
                     return false;
             }
+        }
+
+        [TestMethod]
+        public void TestConstructorComplex()
+        {
+            Formula form = new Formula("(4.32/80.668- 23.4  ) * (A4 - A6) + (5+6) - (A3)");
         }
 
         //Constructor tests that throw exceptions
@@ -338,10 +404,109 @@ namespace FormulaTester
 
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
-        public void TestConstructor()
+        public void TestConstructorClosingParenFollowingOperator()
         {
-            Formula form = new Formula("");
+            Formula form = new Formula("4+6+)9");
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorClosingParenFollowingOpenParen()
+        {
+            Formula form = new Formula("4+6+()9");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorOperatorFollowingOperator()
+        {
+            Formula form = new Formula("4/2/-6");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorOperatorFollowingOpeningParen()
+        {
+            Formula form = new Formula("4/2(-6");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorVarFollowingNumber()
+        {
+            Formula form = new Formula("5-6A4");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNumberFollowingClosingParen()
+        {
+            Formula form = new Formula("4-(6+a4)5");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorEndingWithOperator()
+        {
+            Formula form = new Formula("4-6-");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorEndingWithOpeningParen()
+        {
+            Formula form = new Formula("2/6+5(");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNonValidatedVariable()
+        {
+            Formula form = new Formula("a6", str => str, isValid);
+
+            bool isValid(string str)
+            {
+                if (str.Equals("a6"))
+                    return false;
+                return true;
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNonValidatedVariableBadSymbolInBack()
+        {
+            Formula form = new Formula("a6_#", str => str, isValid);
+
+            bool isValid(string str)
+            {
+                if (str.Equals("a6"))
+                    return false;
+                return true;
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNonValidatedVariableBadSymbolInFront()
+        {
+            Formula form = new Formula("_%a6_", str => str, isValid);
+
+            bool isValid(string str)
+            {
+                if (str.Equals("a6"))
+                    return false;
+                return true;
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructoBadVariable()
+        {
+            Formula form = new Formula("_7A_");
+        }
+
 
         //======================================
         //Testing Equals
@@ -410,11 +575,21 @@ namespace FormulaTester
         }
 
         [TestMethod]
-        public void TestEqualsOpNullAndNotNull()
+        public void TestEqualsOpNullAndNotNullF2()
         {
             Formula form = new Formula("5");
             Formula form2 = new Formula("5");
             form2 = null;
+
+            Assert.IsFalse(form == form2);
+        }
+
+        [TestMethod]
+        public void TestEqualsOpNullAndNotNullF1()
+        {
+            Formula form = new Formula("5");
+            Formula form2 = new Formula("5");
+            form = null;
 
             Assert.IsFalse(form == form2);
         }
@@ -453,6 +628,24 @@ namespace FormulaTester
         {
             Formula form = new Formula("5.6+11");
             Formula form2 = new Formula("22-26");
+
+            Assert.IsTrue(form != form2);
+        }
+
+        [TestMethod]
+        public void TestNotEqualsOpDifferentLengths()
+        {
+            Formula form = new Formula("4-6+2");
+            Formula form2 = new Formula("4-6");
+
+            Assert.IsTrue(form != form2);
+        }
+
+        [TestMethod]
+        public void TestNotEqualsOpDifferentTypesInTheSamePositions()
+        {
+            Formula form = new Formula("4+3+2-2");
+            Formula form2 = new Formula("(4-2)+2");
 
             Assert.IsTrue(form != form2);
         }
@@ -507,6 +700,26 @@ namespace FormulaTester
             };
 
             Assert.IsTrue(expectedVariables.SetEquals(new HashSet<String>(form.GetVariables())));
+        }
+
+        //=====================
+        //ToString and Hashcode
+        //=====================
+        [TestMethod]
+        public void TestToString()
+        {
+            Formula form = new Formula("A4 - U7     - A6 + 5 - A4");
+
+            Assert.AreEqual("A4-U7-A6+5-A4", form.ToString());
+        }
+
+        [TestMethod]
+        public void TestGetHashcode()
+        {
+            Formula form = new Formula("5E2 + A4 - U7     - A6 + 5.00 - A4");
+            Formula form2 = new Formula("500 +A4 - U7    - A6 + 5 - A4");
+
+            Assert.IsTrue(form.GetHashCode() == form2.GetHashCode());
         }
 
         // ==============================================
