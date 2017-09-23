@@ -113,55 +113,41 @@ namespace SpreadsheetUtilities
             //These stacks are used to hold the operators and operands of the infix expression
             Stack<double> values = new Stack<double>();
             Stack<String> operators = new Stack<String>();
-
-            //Splits the exp string into an array of tokens
-            string[] substrings = Regex.Split(normalizedExp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
-
-            //Used while evaluating
-            String token;
+            FormulaError divideByZero = new FormulaError("Error: Divide by 0. Check expression for any possible " +
+                "divsions by 0.");
 
             //Traverses through the string
-            foreach (String substring in substrings)
+            foreach (String token in GetTokens(normalizedExp))
             {
-                //Get rid of leading and trailing whitespace
-                token = substring.Trim();
-
                 if (token.Equals(""))
                     continue;
 
                 //If the token is an integer
                 else if (Double.TryParse(token, out double parsedDouble))
                 {
-                    HandleDouble(parsedDouble, operators, values);
+                    if (!HandleDouble(parsedDouble, operators, values))
+                        return divideByZero;
                 }
 
                 //If the token is a variable (checks to see if the first character is a letter)
-                else if (Char.IsLetter(token[0]))
+                else if (token.StartsAsVar())
                 {
-                    //VerifyVariable(token); TODO
 
                     //Try to lookup the variable and pass it to the same function that handles a normal integer
-                    //If an exception is thrown by the delegate looking up the variable, throw an argument exception
+                    //If an exception is thrown by the delegate looking up the variable, return an error
                     try
                     {
                         parsedDouble = lookup(token);
-                        HandleDouble(parsedDouble, operators, values);
+                        if (!HandleDouble(parsedDouble, operators, values))
+                            return divideByZero;
                     }
                     catch (Exception)
                     {
-                        // throw new ArgumentException("Unknown variable"); TODO
-                        return new FormulaError(""); //TODO
+                        return new FormulaError("A value for the variable " + token + "could not be found. " +
+                            "Check the variable or the lookup delegate");
                     }
 
                 }
-
-                /*
-                //Tokens from now on must be operators.
-                //All operators must be of length 1: "+", "-", "*", "/", "(", or ")"
-                //If the token is not of length 1, throw an exception
-                else if (token.Length != 1)
-                    //throw malformedException; //TODO
-                */
 
                 //If the token is + or -
                 else if (token.Equals("+") || token.Equals("-"))
@@ -182,18 +168,13 @@ namespace SpreadsheetUtilities
                     if (operators.IsOnTop<String>("+") || operators.IsOnTop<String>("-"))
                         HandlePlusMinus(operators, values);
 
-                    //At this point, only a "(" should be on top of the stack. If there isn't one where expected,
-                    //then throw an argument exception
-                    if (!operators.IsOnTop<String>("("))
-                    {
-                        //throw malformedException; TODO
-                        return new FormulaError(""); //TODO
-                    }
+                    //At this point, only a "(" should be on top of the stack.
                     operators.Pop();
 
                     //If there is a value on the stack, pop it and hand it over to the int handling function
                     if (values.Count > 0)
-                        HandleDouble(values.Pop(), operators, values);
+                        if (!HandleDouble(values.Pop(), operators, values))
+                            return divideByZero;
                 }
 
             }
@@ -202,19 +183,16 @@ namespace SpreadsheetUtilities
             //If there are no operators, there should be 1 value on the stack - the result.
             //If there is an operator, there should be only 1 and it should be a + or -.
             //If this is the case, there should be two values on the value stack to be processed.
-            //If one of these two conditions are not met, and argument exception is thrown
             if (operators.Count == 0 && values.Count == 1)
             {
                 return values.Pop();
             }
-            else if (operators.Count == 1 && values.Count == 2)
+            //Operators count should be 1 and values count should be 2
+            else
             {
                 HandlePlusMinus(operators, values);
                 return values.Pop();
             }
-            else
-                //throw malformedException; TODO
-                return new FormulaError(""); //TODO
         }
 
         /// <summary>
@@ -389,28 +367,23 @@ namespace SpreadsheetUtilities
         /// If * or / is at the top of the operator stack, will pop the value stack and pop the operator stack, 
         /// and apply the popped operator to the popped number and passed number. Pushes the result onto the value stack.
         /// Otherwise, just pushes the passed number onto the value stack.
+        /// 
+        /// If divide by zero is attempted, returns false. Else true.
         /// </summary>
         /// <param name="number"></param>
         /// <param name="operatorStack"></param>
         /// <param name="valueStack"></param>
-        private static void HandleDouble(double number, Stack<String> operatorStack, Stack<double> valueStack)
+        private static bool HandleDouble(double number, Stack<String> operatorStack, Stack<double> valueStack)
         {
             if (operatorStack.IsOnTop<String>("*") || operatorStack.IsOnTop<String>("/"))
             {
-                //If there isn't a value to be multiplied or divided by, throw an exception
-                if (valueStack.Count < 1)
-                {
-                    //TODO
-                    //return new FormulaError("");
-                }
-
                 String op = operatorStack.Pop();
                 double preOpValue = valueStack.Pop();
 
                 if (op.Equals("/"))
                 {
                     if (number == 0)
-                        throw new ArgumentException("Divide By Zero");
+                        return false;
                     valueStack.Push(preOpValue / number);
                 }
                 else
@@ -418,6 +391,8 @@ namespace SpreadsheetUtilities
             }
             else
                 valueStack.Push(number);
+
+            return true;
         }
 
         /// <summary>
@@ -433,24 +408,14 @@ namespace SpreadsheetUtilities
             //Checks if a + or - is currently on the operator stack
             if (operatorStack.IsOnTop<String>("+") || operatorStack.IsOnTop<String>("-"))
             {
-                //Checks to make sure there are two values to be added before the current token is put on the stack
-                if (valueStack.Count < 2)
-                {
-                    //throw malformedException; TODO
-                }
-
                 String op = operatorStack.Pop();
                 double postOpvValue = valueStack.Pop();
                 double preOpValue = valueStack.Pop();
 
                 if (op.Equals("+"))
-                {
                     valueStack.Push(preOpValue + postOpvValue);
-                }
                 else
-                {
                     valueStack.Push(preOpValue - postOpvValue);
-                }
             }
         }
 
