@@ -44,6 +44,7 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class Formula
     {
+        //Holds the normalized version of the final formula. Will only hold it if the object can be created.
         private String normalizedExp;
         
         /// <summary>
@@ -229,7 +230,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<String> GetVariables()
         {
-            return null;
+            HashSet<String> variables = new HashSet<string>();
+            foreach(String token in GetTokens(normalizedExp))
+            {
+                if (token.StartsAsVar())
+                {
+                    variables.Add(token);
+                }
+            }
+
+            return variables;
         }
 
         /// <summary>
@@ -329,7 +339,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
-            return false;
+            return !(f1 == f2);
         }
 
         /// <summary>
@@ -477,6 +487,9 @@ namespace SpreadsheetUtilities
         /// <summary>
         /// This method verifies that the syntax of the passed formula follows the guidelines
         /// for a formula object written in standard infix notation as is defined in the object header.
+        /// 
+        /// Returns the normalized version of the formula if the syntax can be verified.
+        /// Any variables will be normalized and validated by the normalize and isValid functions.
         /// </summary>
         /// <param name="formula"></param>
         /// <returns></returns>

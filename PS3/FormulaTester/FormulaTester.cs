@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpreadsheetUtilities;
+using System.Collections.Generic;
 
 namespace FormulaTester
 {
@@ -309,6 +310,76 @@ namespace FormulaTester
             Formula form2 = form;
 
             Assert.IsTrue(form == form2);
+        }
+
+        [TestMethod]
+        public void TestNotEqualsOpSame()
+        {
+            Formula form = new Formula("4.0");
+            Formula form2 = new Formula("4");
+
+            Assert.IsFalse(form != form2);
+        }
+
+        [TestMethod]
+        public void TestNotEqualsOpDifferent()
+        {
+            Formula form = new Formula("5.6+11");
+            Formula form2 = new Formula("22-26");
+
+            Assert.IsTrue(form != form2);
+        }
+
+        // ==============================================
+        // Testing GetVariables
+        //===============================================
+
+        [TestMethod]
+        public void TestGetVariablesNoVars()
+        {
+            Formula form = new Formula("4+2");
+            HashSet<String> expectedVariables = new HashSet<string>
+            {
+                
+            };
+
+            Assert.IsTrue(expectedVariables.SetEquals(new HashSet<String>(form.GetVariables())));
+        }
+
+        [TestMethod]
+        public void TestGetVariablesSingleVar()
+        {
+            Formula form = new Formula("A4-17");
+            HashSet<String> expectedVariables = new HashSet<string>
+            {
+                "A4"
+            };
+
+            Assert.IsTrue(expectedVariables.SetEquals(new HashSet<String>(form.GetVariables())));
+        }
+
+        [TestMethod]
+        public void TestGetVariablesMultipleVars()
+        {
+            Formula form = new Formula("A4 - _U8_ + 4");
+            HashSet<String> expectedVariables = new HashSet<string>
+            {
+                "A4", "_U8_"
+            };
+
+            Assert.IsTrue(expectedVariables.SetEquals(new HashSet<String>(form.GetVariables())));
+        }
+
+        [TestMethod]
+        public void TestGetVariablesDuplicates()
+        {
+            Formula form = new Formula("A4 - U7 - A6 + 5 - A4");
+            HashSet<String> expectedVariables = new HashSet<string>
+            {
+                "A4", "U7", "A6"
+            };
+
+            Assert.IsTrue(expectedVariables.SetEquals(new HashSet<String>(form.GetVariables())));
         }
 
         // ==============================================
