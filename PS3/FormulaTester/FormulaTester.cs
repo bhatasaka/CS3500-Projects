@@ -273,7 +273,75 @@ namespace FormulaTester
 
         //Constructor tests that throw exceptions
 
-        
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNoToken()
+        {
+            Formula form = new Formula("");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNullToken()
+        {
+            Formula form = new Formula(null);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorStartFormWithOperator()
+        {
+            Formula form = new Formula("+6-7");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorStartFormWithClosingParenthesis()
+        {
+            Formula form = new Formula(")-5-6");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorNonValidCharacter()
+        {
+            Formula form = new Formula("5+A4 / '");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorOpenParenthesisFollowingNumber()
+        {
+            Formula form = new Formula("4+6(-8");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorOpenParenthesisFollowingVar()
+        {
+            Formula form = new Formula("4+A8(-8");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorOpenParenthesisFollowingClosingParen()
+        {
+            Formula form = new Formula("4+(6 -2 )(-8");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructorUnequalParentheses()
+        {
+            Formula form = new Formula("(9-2) / 8+6)");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestConstructor()
+        {
+            Formula form = new Formula("");
+        }
 
         //======================================
         //Testing Equals
@@ -345,7 +413,7 @@ namespace FormulaTester
         public void TestEqualsOpNullAndNotNull()
         {
             Formula form = new Formula("5");
-            Formula form2 = new Formula("");
+            Formula form2 = new Formula("5");
             form2 = null;
 
             Assert.IsFalse(form == form2);

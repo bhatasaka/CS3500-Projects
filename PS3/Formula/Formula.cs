@@ -432,19 +432,19 @@ namespace SpreadsheetUtilities
             {
                 char character = variable[letterPos];
 
-                if (character.Equals("_"))
+                if (character.Equals('_'))
                 {
                     continue;
                 }
                 else if (reachedNumber && !Char.IsNumber(character))
                 {
-                    //throw malformedException; TODO
+                    return false;
                 }
                 else if (!reachedNumber && Char.IsNumber(character))
                     reachedNumber = true;
                 else if (!reachedNumber && !Char.IsLetter(character))
                 {
-                    //throw malformedException; TODO
+                    return false;
                 }
             }
             return true;
@@ -461,6 +461,8 @@ namespace SpreadsheetUtilities
         /// <returns></returns>
         private static String VerifySyntax(string formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
+            if (formula == null)
+                throw new FormulaFormatException("formula cannot be null. Check for null formula");
             int openingParenthesis = 0;
             int closingParenthesis = 0;
             int counter = 0;
@@ -496,6 +498,8 @@ namespace SpreadsheetUtilities
                     throw new FormulaFormatException("A non-valid token was found, check the expression, " +
                         "valid tokens are: (, ), +, -, *, /, variables, and floating-point numbers");
                 }
+
+                
                 else if (token.Equals("("))
                 {
                     openingParenthesis++;
@@ -507,10 +511,11 @@ namespace SpreadsheetUtilities
                             " Only operators or closing parenthesis can follow a number, variable or closing parenthesis.");
                     }
                 }
-                //Make sure that the parentheses are balanced
+
                 else if (token.Equals(")"))
                 {
                     closingParenthesis++;
+                    //Make sure that the parentheses are balanced
                     if(closingParenthesis > openingParenthesis)
                     {
                         throw new FormulaFormatException("Unequal parenthesis found. Check for equal " +
@@ -558,7 +563,8 @@ namespace SpreadsheetUtilities
                     //Continue because the variable is already appended to the final string
                     continue;
                 }
-                //If the token is a number
+
+                //If the token is a number (the only option left)
                 else
                 {
                     followingParenthesis = false;
@@ -577,7 +583,8 @@ namespace SpreadsheetUtilities
 
                 finalString.Append(token);
             }
-            if(lastToken == null)
+
+            if(lastToken.Equals(""))
             {
                 throw new FormulaFormatException("No tokens found, the formula must contain at least 1 token.");
             }
@@ -680,8 +687,18 @@ namespace SpreadsheetUtilities
         }
     }
 
+    /// <summary>
+    /// Adds two extension methods to the String class
+    /// </summary>
     public static class PS3StringExtension
     {
+        /// <summary>
+        /// Returns true if the called string is an operator.
+        /// An operator is defined as +, -, *, or /.
+        /// False otherwise.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static bool IsOperator(this String str)
         {
             switch (str)
@@ -699,6 +716,15 @@ namespace SpreadsheetUtilities
             }
         }
 
+        /// <summary>
+        /// Returns true if the string starts as a variable should.
+        /// A variable is defined in the object description. This method
+        /// checks for the first character being _ or a letter.
+        /// 
+        /// False otherwise.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static bool StartsAsVar(this String str)
         {
             if(str[0].Equals('_') || Char.IsLetter(str[0]))
