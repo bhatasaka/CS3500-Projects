@@ -268,6 +268,7 @@ namespace SpreadsheetUtilities
             Double otherNumber;
             String otherToken;
 
+            //Queueing the tokens in each formula
             foreach (String token in GetTokens(normalizedExp))
             {
                 thisQueue.Enqueue(token);
@@ -277,11 +278,13 @@ namespace SpreadsheetUtilities
                 otherQueue.Enqueue(token);
             }
 
+            //Comparing the strings, token by token
             if (thisQueue.Count != otherQueue.Count)
                 return false;
             foreach(String thisToken in thisQueue)
             {
                 otherToken = otherQueue.Dequeue();
+                //Getting double.parse's number then toString in order to compare numbers
                 if (Double.TryParse(thisToken, out thisNumber) &&
                     Double.TryParse(otherToken, out otherNumber))
                 {
