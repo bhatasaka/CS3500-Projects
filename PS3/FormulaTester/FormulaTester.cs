@@ -9,16 +9,6 @@ namespace FormulaTester
     public class FormulaTester
     {
         //======================================
-        //Additional testing for the constructor
-        //======================================
-        [TestMethod]
-        public void TestConstructorSingleInt()
-        {
-            Formula form = new Formula("22");
-        }
-
-
-        //======================================
         //Testing the constructor and evaluate
         //======================================
         [TestMethod]
@@ -225,6 +215,66 @@ namespace FormulaTester
             Assert.AreEqual(26.6, result);
         }
 
+        //Testing invalid evaluates
+
+        //======================================
+        //Additional testing for the constructor
+        //======================================
+        [TestMethod]
+        public void TestConstructorSingleInt()
+        {
+            Formula form = new Formula("22");
+        }
+
+        [TestMethod]
+        public void TestConstructorWithNormalizer()
+        {
+            Formula form = new Formula("a1", normalizer, str => true);
+
+            string normalizer(string str)
+            {
+                if (str.Equals("a1"))
+                    return "A1";
+                else
+                    return str;
+            }
+        }
+
+        [TestMethod]
+        public void TestConstructorWithNormalizerWorking()
+        {
+            Formula form = new Formula("a1", normalizer, str => true);
+
+            string normalizer(string str)
+            {
+                if (str.Equals("a1"))
+                    return "A1";
+                else
+                    return str;
+            }
+            
+            HashSet<String> expected = new HashSet<String>{ "A1" };
+            Assert.IsTrue(expected.SetEquals(new HashSet<String>(form.GetVariables())));
+        }
+
+        [TestMethod]
+        public void TestConstructorWithIsValid()
+        {
+            Formula form = new Formula("a1", str => str, isValid);
+
+            bool isValid(string str)
+            {
+                if (str.Equals("a1"))
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        //Constructor tests that throw exceptions
+
+        
+
         //======================================
         //Testing Equals
         //======================================
@@ -271,6 +321,15 @@ namespace FormulaTester
             Formula form2 = form;
 
             Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsDifferntObject()
+        {
+            Formula form = new Formula("5");
+            String form2 = "hi ^_^";
+
+            Assert.IsFalse(form.Equals(form2));
         }
 
         [TestMethod]

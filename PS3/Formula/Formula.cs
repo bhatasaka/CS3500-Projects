@@ -258,6 +258,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object obj)
         {
+            //If the object isn't a formula object return false
             if(!(obj is Formula))
             {
                 return false;
