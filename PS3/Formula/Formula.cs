@@ -57,7 +57,6 @@ namespace SpreadsheetUtilities
         public Formula(String formula) :
             this(formula, s => s, s => true)
         {
-            normalizedExp = formula;
         }
 
         /// <summary>
@@ -245,7 +244,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override string ToString()
         {
-            return null;
+            String returnString = normalizedExp;
+            return returnString;
         }
 
         /// <summary>
@@ -270,7 +270,42 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object obj)
         {
-            return false;
+            if(!(obj is Formula))
+            {
+                return false;
+            }
+            String otherForm = ((Formula)obj).normalizedExp;
+
+            Queue<string> thisQueue = new Queue<String>();
+            Queue<string> otherQueue = new Queue<String>();
+            Double thisNumber;
+            Double otherNumber;
+            String otherToken;
+
+            foreach (String token in GetTokens(normalizedExp))
+            {
+                thisQueue.Enqueue(token);
+            }
+            foreach (String token in GetTokens(otherForm))
+            {
+                otherQueue.Enqueue(token);
+            }
+
+            if (thisQueue.Count != otherQueue.Count)
+                return false;
+            foreach(String thisToken in thisQueue)
+            {
+                otherToken = otherQueue.Dequeue();
+                if (Double.TryParse(thisToken, out thisNumber).ToString() !=
+                    Double.TryParse(otherToken, out otherNumber).ToString())
+                {
+                    return false;
+                }
+                else if (!(thisToken.Equals(otherToken)))
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -280,7 +315,11 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
-            return false;
+            if (System.Object.ReferenceEquals(f1, f2))
+                return true;
+            if((Object)f1 == null || (Object)f2 == null)
+                return false;
+            return f1.Equals(f2);
         }
 
         /// <summary>
@@ -300,7 +339,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override int GetHashCode()
         {
-            return 0;
+            return this.ToString().GetHashCode();
         }
 
         /// <summary>
@@ -445,6 +484,7 @@ namespace SpreadsheetUtilities
         {
             int openingParenthesis = 0;
             int closingParenthesis = 0;
+            int counter = 0;
             StringBuilder finalString = new StringBuilder();
             IEnumerable<string> tokens = GetTokens(formula);
             String lastToken = "";
@@ -457,11 +497,12 @@ namespace SpreadsheetUtilities
             //Only an operator or a closing parenthesis can follow
             bool followingExtra = false;
 
+
             foreach (String token in tokens)
             {
                 lastToken = token;
                 //Checking the first token of the formula to be a number, variable or (
-                if (tokens.Count() == 0) //TODO
+                if (counter == 0)
                 {
                     if (token.IsOperator() || token.Equals(")"))
                     {
@@ -469,7 +510,7 @@ namespace SpreadsheetUtilities
                             "must start with a number, a variable or an opening parenthesis");
                     }
                 }
-
+                counter++;
 
                 if (!IsValidToken(token))
                 {
@@ -493,7 +534,7 @@ namespace SpreadsheetUtilities
                     closingParenthesis++;
                     if(closingParenthesis > openingParenthesis)
                     {
-                        throw new FormulaFormatException("Unequal parenthesis found. Check for equal" +
+                        throw new FormulaFormatException("Unequal parenthesis found. Check for equal " +
                             "numbers of closing and opening parentheses");
                     }
 
@@ -508,7 +549,7 @@ namespace SpreadsheetUtilities
                 {
                     if (followingParenthesis)
                     {
-                        throw new FormulaFormatException("An opperator was found following an operator/openinng parenthesis." +
+                        throw new FormulaFormatException("An opperator was found following an operator/openinng parenthesis. " +
                             "Only numbers, variables and opening parenthesis can follow operators/opening parentheses.");
                     }
                     else
@@ -520,9 +561,9 @@ namespace SpreadsheetUtilities
                 {
                     //Can be done because if the variable makes it this far, it has valid syntax
                     finalString.Append(normalize(token));
-                    if (isValid(token))
+                    if (!isValid(token))
                     {
-                        throw new FormulaFormatException("The variable did not pass the validator test. Check for" +
+                        throw new FormulaFormatException("The variable did not pass the validator test. Check for " +
                             "proper syntax as defined by the passed validator or check the validator.");
                     }
 
@@ -549,6 +590,10 @@ namespace SpreadsheetUtilities
                     }
                     else
                         followingExtra = true;
+
+                    //Normalize the number in case the number is in scientific notation or other forms
+                    finalString.Append(Double.Parse(token));
+                    continue;
                 }
 
                 finalString.Append(token);
@@ -567,6 +612,14 @@ namespace SpreadsheetUtilities
 
         }
 
+        /// <summary>
+        /// Returns true if the given token is a (, ), +, -, *, /, number or variable.
+        /// False otherwise.
+        /// This method also verifies variable's syntax. Any variable with incorrect syntax
+        /// that is passed will return false.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private static bool IsValidToken(String token)
         {
             if (Double.TryParse(token, out double number))
@@ -577,20 +630,16 @@ namespace SpreadsheetUtilities
                     return false;
                 return true;
             }
-            else
+            else if (token.IsOperator())
             {
-                String[] operators = { "(", ")", "+", "-", "*", "/" };
-                foreach(String op in operators)
-                {
-                    if (token.Equals(op))
-                        return true;
-                }
-
-                // If the token doesn't equal a number, a valid variable, an operator or a
-                //parenthesis, then it is not a valid token
-                return false;
+                return true;
             }
-
+            else if (token.Equals("(") || token.Equals(")"))
+            {
+                return true;
+            }
+            else
+                return false;
         }
     }
 

@@ -7,6 +7,19 @@ namespace FormulaTester
     [TestClass]
     public class FormulaTester
     {
+        //======================================
+        //Additional testing for the constructor
+        //======================================
+        [TestMethod]
+        public void TestConstructorSingleInt()
+        {
+            Formula form = new Formula("22");
+        }
+
+
+        //======================================
+        //Testing the constructor and evaluate
+        //======================================
         [TestMethod]
         public void TestEvaluateSingleInt()
         {
@@ -211,18 +224,104 @@ namespace FormulaTester
             Assert.AreEqual(26.6, result);
         }
 
+        //======================================
+        //Testing Equals
+        //======================================
+        [TestMethod]
+        public void TestEqualsSimpleDoubles()
+        {
+            Formula form = new Formula("2.0");
+            Formula form2 = new Formula("2");
+
+            Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsScientificForm()
+        {
+            Formula form = new Formula("2.0");
+            Formula form2 = new Formula("2E0");
+
+            Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsSimpleAddition()
+        {
+            Formula form = new Formula("2 + 6");
+            Formula form2 = new Formula("2+6");
+
+            Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsVar()
+        {
+            Formula form = new Formula("_A7_2-7/4.0*6E1");
+            Formula form2 = new Formula("_A7_2 - 7 / 4 * 60");
+
+            Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsSameInstance()
+        {
+            Formula form = new Formula("5");
+            Formula form2 = form;
+
+            Assert.IsTrue(form.Equals(form2));
+        }
+
+        [TestMethod]
+        public void TestEqualsOpSimple()
+        {
+            Formula form = new Formula("5+6");
+            Formula form2 = new Formula("5.0 +      6E0");
+
+            Assert.IsTrue(form == form2);
+        }
+
+        [TestMethod]
+        public void TestEqualsOpNullAndNotNull()
+        {
+            Formula form = new Formula("5");
+            Formula form2 = new Formula("");
+            form2 = null;
+
+            Assert.IsFalse(form == form2);
+        }
+
+        [TestMethod]
+        public void TestEqualsOpNull()
+        {
+            Formula form = new Formula("5");
+            Formula form2 = new Formula("4");
+            form = null;
+            form2 = null;
+
+            Assert.IsTrue(form == form2);
+        }
+
+        [TestMethod]
+        public void TestEqualsOpSameInstance()
+        {
+            Formula form = new Formula("5");
+            Formula form2 = form;
+
+            Assert.IsTrue(form == form2);
+        }
+
         // ==============================================
         // Private function tests
         //===============================================
-
+        /*
         [TestMethod]
         public void TestIsValidTokenDouble()
         {
             Formula form = new Formula("0.0");
             PrivateObject formAcessor = new PrivateObject(form);
-
            
-            Assert.AreEqual(true, formAcessor.Invoke("IsValidToken", new String[1] { "1.0" }));
+            Assert.AreEqual(true, formAcessor.Invoke("IsValidToken", new Object[1] { "1.0" }));
         }
 
         [TestMethod]
@@ -266,9 +365,11 @@ namespace FormulaTester
         {
             Formula form = new Formula("0.0");
             PrivateObject formAcessor = new PrivateObject(form);
+            formAcessor.Invoke("VerifyVariable", new String[1] { "A" });
 
             Assert.AreEqual(true, formAcessor.Invoke("VerifyVariable", new String[1] { "_A" }));
         }
+        */
 
     }
 }
