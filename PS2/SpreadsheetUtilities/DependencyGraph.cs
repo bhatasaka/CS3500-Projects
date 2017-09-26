@@ -121,9 +121,7 @@ namespace SpreadsheetUtilities
             int sKey = s.GetHashCode();
             if(dependentsDictionary.ContainsKey(sKey))
             {
-                HashSet<String> setCopy = dependentsDictionary[sKey];
-
-                return setCopy;
+                return dependentsDictionary[sKey].ToArray<String>();
             }
             
             //If s doesn't have any dependents, then return an empty list
@@ -138,9 +136,7 @@ namespace SpreadsheetUtilities
             int sKey = s.GetHashCode();
             if (dependeesDictionary.ContainsKey(sKey))
             {
-                HashSet<String> setCopy = dependeesDictionary[sKey];
-
-                return setCopy;
+                return dependeesDictionary[sKey].ToArray<String>();
             }
 
             //If s doesn't have any dependees, then return an empty list

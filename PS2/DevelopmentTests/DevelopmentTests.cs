@@ -785,7 +785,7 @@ namespace PS2GradingTests
 
             stopWatch.Stop();
             TimeSpan time = stopWatch.Elapsed;
-            Assert.IsTrue(time.Seconds < 5);
+            Assert.IsTrue(time.Seconds < 10);
         }
     }
 }
