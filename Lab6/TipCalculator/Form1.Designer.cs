@@ -62,14 +62,14 @@
             this.finalTipBox.Location = new System.Drawing.Point(442, 259);
             this.finalTipBox.Name = "finalTipBox";
             this.finalTipBox.Size = new System.Drawing.Size(100, 31);
-            this.finalTipBox.TabIndex = 2;
+            this.finalTipBox.TabIndex = 5;
             // 
             // tipTextbox
             // 
             this.tipTextbox.Location = new System.Drawing.Point(442, 166);
             this.tipTextbox.Name = "tipTextbox";
             this.tipTextbox.Size = new System.Drawing.Size(100, 31);
-            this.tipTextbox.TabIndex = 4;
+            this.tipTextbox.TabIndex = 3;
             this.tipTextbox.TextChanged += new System.EventHandler(this.tipTextbox_TextChanged);
             // 
             // tipLabel
@@ -79,7 +79,7 @@
             this.tipLabel.Location = new System.Drawing.Point(202, 166);
             this.tipLabel.Name = "tipLabel";
             this.tipLabel.Size = new System.Drawing.Size(158, 25);
-            this.tipLabel.TabIndex = 5;
+            this.tipLabel.TabIndex = 2;
             this.tipLabel.Text = "Tip Percentage";
             // 
             // totalfinalAmountLabel
@@ -106,7 +106,7 @@
             this.tipAmountLabel.Location = new System.Drawing.Point(202, 262);
             this.tipAmountLabel.Name = "tipAmountLabel";
             this.tipAmountLabel.Size = new System.Drawing.Size(121, 25);
-            this.tipAmountLabel.TabIndex = 8;
+            this.tipAmountLabel.TabIndex = 4;
             this.tipAmountLabel.Text = "Tip Amount";
             // 
             // Form1
