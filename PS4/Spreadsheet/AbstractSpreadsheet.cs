@@ -204,19 +204,20 @@ namespace SS
         /// </summary>
         private void Visit(String start, String name, ISet<String> visited, LinkedList<String> changed)
         {
-            visited.Add(name);
-            foreach (String n in GetDirectDependents(name))
+            visited.Add(name);                              // Contains all cells that have been looked at
+            foreach (String n in GetDirectDependents(name)) // Goes through each direct dependent of the passed cell
             {
-                if (n.Equals(start))
-                {
-                    throw new CircularException();
+                if (n.Equals(start))                        // If the dependent of the passed cell is dependent
+                {                                           // on the cell that is being changed, then there
+                    throw new CircularException();          // is a circular dependency.
                 }
-                else if (!visited.Contains(n))
-                {
-                    Visit(start, n, visited, changed);
+                else if (!visited.Contains(n))              // If the cell hasn't already been visited, then
+                {                                           // pass the cell to this function to have its dependents
+                    Visit(start, n, visited, changed);      // looked at.
                 }
             }
-            changed.AddFirst(name);
+            changed.AddFirst(name);                         // Add the cell to the linked list of cells that will have
+                                                            // changed based on their dependency.
         }
 
     }
