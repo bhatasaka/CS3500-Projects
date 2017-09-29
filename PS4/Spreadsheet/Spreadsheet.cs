@@ -9,9 +9,13 @@ namespace SS
 {
     class Spreadsheet : AbstractSpreadsheet
     {
+        private DependencyGraph graph;
+        private HashSet<Cell> cells;
+
         public Spreadsheet()
         {
-
+            graph = new DependencyGraph();
+            cells = new HashSet<Cell>();
         }
 
         public override object GetCellContents(string name)
@@ -26,7 +30,12 @@ namespace SS
 
         public override ISet<string> SetCellContents(string name, double number)
         {
-            throw new NotImplementedException();
+            //Throws an InvalidNameException if the name is not valid
+            verifyName(name);
+            cells.Add(new Cell(name, number, false));
+
+            HashSet<string> dependents = GetCellsToRecalculate(name).ToArray();
+            return GetCellsToRecalculate(name);
         }
 
         public override ISet<string> SetCellContents(string name, string text)
@@ -41,7 +50,39 @@ namespace SS
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
+            if (name == null)
+                throw new InvalidNameException();
+            verifyName(name);
+
+
+        }
+
+        private static bool verifyName(string name)
+        {
             throw new NotImplementedException();
+        }
+
+        private class Cell
+        {
+            object p_contents;
+            bool p_isString;
+
+            object Contents
+            {
+                get
+                { return p_contents; }
+            }
+
+            bool isString
+            {
+                get { return p_isString; }
+            }
+
+            public Cell(String name, Object contents, bool isString)
+            {
+                p_contents = contents;
+                this.p_isString = isString;
+            }
         }
     }
 }

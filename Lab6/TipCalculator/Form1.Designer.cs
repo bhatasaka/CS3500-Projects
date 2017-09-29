@@ -114,7 +114,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.ClientSize = new System.Drawing.Size(748, 475);
+            this.ClientSize = new System.Drawing.Size(770, 502);
             this.Controls.Add(this.tipAmountLabel);
             this.Controls.Add(this.totalFinalAmountTextbox);
             this.Controls.Add(this.totalfinalAmountLabel);

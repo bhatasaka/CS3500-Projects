@@ -207,7 +207,7 @@ namespace SS
             visited.Add(name);                              // Contains all cells that have been looked at
             foreach (String n in GetDirectDependents(name)) // Goes through each direct dependent of the passed cell
             {
-                if (n.Equals(start))                        // If the dependent of the passed cell is dependent
+                if (n.Equals(start))                        // If the cell that is originally being modified is dependent
                 {                                           // on the cell that is being changed, then there
                     throw new CircularException();          // is a circular dependency.
                 }
