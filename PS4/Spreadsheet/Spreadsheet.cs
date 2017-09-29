@@ -32,7 +32,7 @@ namespace SS
         {
             //Throws an InvalidNameException if the name is not valid
             verifyName(name);
-            Cell cell = new Cell(name, number, false);
+            Cell cell = new Cell(name, number);
             HandleCells(cell);
 
             return allDependentsSet(name);
@@ -40,7 +40,11 @@ namespace SS
 
         public override ISet<string> SetCellContents(string name, string text)
         {
-            throw new NotImplementedException();
+            verifyName(name);
+            Cell cell = new Cell(name, text);
+            HandleCells(cell);
+
+            return allDependentsSet(name);
         }
 
         public override ISet<string> SetCellContents(string name, Formula formula)
@@ -51,7 +55,7 @@ namespace SS
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
             if (name == null)
-                throw new InvalidNameException();
+                throw new ArgumentNullException();
             verifyName(name);
 
             return graph.GetDependents(name);
@@ -84,10 +88,11 @@ namespace SS
             private bool p_isString;
             private string p_name;
 
-            public Cell(String name, Object contents, bool isString)
+            public Cell(String name, Object contents)
             {
                 p_contents = contents;
-                this.p_isString = isString;
+                if (contents is String)
+                    p_isString = true;
             }
             public object Contents
             {
