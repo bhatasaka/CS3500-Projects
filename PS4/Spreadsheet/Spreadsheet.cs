@@ -54,7 +54,7 @@ namespace SS
                 throw new InvalidNameException();
             verifyName(name);
 
-
+            return graph.GetDependents(name);
         }
 
         private static bool verifyName(string name)
