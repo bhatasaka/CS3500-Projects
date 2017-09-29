@@ -32,10 +32,10 @@ namespace SS
         {
             //Throws an InvalidNameException if the name is not valid
             verifyName(name);
-            cells.Add(new Cell(name, number, false));
+            Cell cell = new Cell(name, number, false);
+            HandleCells(cell);
 
-            HashSet<string> dependents = GetCellsToRecalculate(name).ToArray();
-            return GetCellsToRecalculate(name);
+            return allDependentsSet(name);
         }
 
         public override ISet<string> SetCellContents(string name, string text)
@@ -62,26 +62,52 @@ namespace SS
             throw new NotImplementedException();
         }
 
+        private void HandleCells(Cell cell)
+        {
+            if (cells.Contains(cell))
+            {
+                cells.Remove(cell);
+                if (cell.Name.Equals(""))
+                    return;
+            }
+            cells.Add(cell);
+        }
+
+        private HashSet<String> allDependentsSet(string name)
+        {
+           return new HashSet<string>(GetCellsToRecalculate(name));
+        }
+
         private class Cell
         {
-            object p_contents;
-            bool p_isString;
-
-            object Contents
-            {
-                get
-                { return p_contents; }
-            }
-
-            bool isString
-            {
-                get { return p_isString; }
-            }
+            private object p_contents;
+            private bool p_isString;
+            private string p_name;
 
             public Cell(String name, Object contents, bool isString)
             {
                 p_contents = contents;
                 this.p_isString = isString;
+            }
+            public object Contents
+            {
+                get
+                { return p_contents; }
+            }
+
+            public bool IsString
+            {
+                get { return p_isString; }
+            }
+
+            public string Name
+            {
+                get { return p_name;  }
+            }
+
+            public override int GetHashCode()
+            {
+                return Name.GetHashCode();
             }
         }
     }
