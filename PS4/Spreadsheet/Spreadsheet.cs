@@ -20,6 +20,7 @@ namespace SS
 
         public override object GetCellContents(string name)
         {
+            //Check and make sure is Formula is a thing
             throw new NotImplementedException();
         }
 
@@ -30,32 +31,21 @@ namespace SS
 
         public override ISet<string> SetCellContents(string name, double number)
         {
-            //Throws an InvalidNameException if the name is not valid
-            verifyName(name);
-            Cell cell = new Cell(name, number);
-            HandleCells(cell);
-
-            return allDependentsSet(name);
+            return HandleSetCell(name, number);
         }
 
         public override ISet<string> SetCellContents(string name, string text)
         {
-            verifyName(name);
-            Cell cell = new Cell(name, text);
-            HandleCells(cell);
-
-            return allDependentsSet(name);
+            return HandleSetCell(name, text);
         }
 
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
-            throw new NotImplementedException();
+            return HandleSetCell(name, formula);
         }
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException();
             verifyName(name);
 
             return graph.GetDependents(name);
@@ -63,23 +53,32 @@ namespace SS
 
         private static bool verifyName(string name)
         {
+            if (name == null)
+                throw new ArgumentNullException();
             throw new NotImplementedException();
         }
 
-        private void HandleCells(Cell cell)
+        private HashSet<String> HandleSetCell(string name, Object contents)
         {
-            if (cells.Contains(cell))
-            {
-                cells.Remove(cell);
-                if (cell.Name.Equals(""))
-                    return;
-            }
-            cells.Add(cell);
-        }
+            //Throws an InvalidNameException if the name is not valid
+            verifyName(name);
+            if (contents == null)
+                throw new ArgumentNullException();
 
-        private HashSet<String> allDependentsSet(string name)
-        {
-           return new HashSet<string>(GetCellsToRecalculate(name));
+            //Throws a CircularException if there is a circular dependency
+            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name));
+            allDependents.Add(name);
+
+            Cell cell = new Cell(name, contents);
+
+            //Checks if the cell already exists
+            if (cells.Contains(cell))
+                cells.Remove(cell); //Remove the cell if it exists already
+            //If the cell doesn't contain an empty string, add the new cell to the set
+            if (!cell.Contents.Equals(""))
+                cells.Add(cell);
+
+            return allDependents;
         }
 
         private class Cell
@@ -96,8 +95,7 @@ namespace SS
             }
             public object Contents
             {
-                get
-                { return p_contents; }
+                get { return p_contents; }
             }
 
             public bool IsString
