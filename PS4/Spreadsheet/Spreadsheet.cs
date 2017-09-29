@@ -46,28 +46,45 @@ namespace SS
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            verifyName(name);
-
+            VerifyName(name);
             return graph.GetDependents(name);
         }
 
-        private static bool verifyName(string name)
+        private static bool VerifyName(string name)
         {
             if (name == null)
                 throw new ArgumentNullException();
-            throw new NotImplementedException();
+            char letter = name[0];
+            //Checking the first character to be an _ or a letter
+            if (letter != '_' || !Char.IsLetter(letter))
+                return false;
+
+            // Traversing through the string to check that the rest of the characters are
+            // letters, numbers or underscores
+            for(int letterPos = 1; letterPos < name.Length; letterPos++)
+            {
+                letter = name[letterPos];
+                if (letter != '_' && !Char.IsLetter(letter) && !Char.IsNumber(letter))
+                    return false;
+            }
+
+            return true;
         }
 
         private HashSet<String> HandleSetCell(string name, Object contents)
         {
             //Throws an InvalidNameException if the name is not valid
-            verifyName(name);
+            VerifyName(name);
             if (contents == null)
                 throw new ArgumentNullException();
 
-            //Throws a CircularException if there is a circular dependency
-            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name));
-            allDependents.Add(name);
+            //Makes a new HashSet of all of the cells that will be affected by changing this cell
+            // plus this cell.
+            //Throws a CircularException if there is a circular dependency.
+            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name))
+            {
+                name
+            };
 
             Cell cell = new Cell(name, contents);
 
