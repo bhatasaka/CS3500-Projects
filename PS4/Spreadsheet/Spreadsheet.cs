@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SS
 {
@@ -45,10 +43,7 @@ namespace SS
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
             HashSet<String> allDependents = HandleSetCell(name, formula);
-            foreach (String variable in formula.GetVariables())
-            {
-                dependencies.AddDependency(variable, name);
-            }
+
             return allDependents;
         }
 
@@ -89,6 +84,13 @@ namespace SS
             if (contents == null)
                 throw new ArgumentNullException();
 
+            //Checks if the cell already exists
+            if (cells.ContainsKey(name))
+            {
+                cells.Remove(name); //Remove the cell if it exists already
+            }
+            RecalculateDependecies(name, contents);
+
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
@@ -97,11 +99,8 @@ namespace SS
                 name
             };
 
-            //Checks if the cell already exists
-            if (cells.ContainsKey(name))
-                cells.Remove(name); //Remove the cell if it exists already
-
             //If the cell doesn't contain an empty string, add the new cell to the set
+            // (otherwise it stays removed from the dictionary)
             if (!contents.Equals(""))
             {
                 Cell cell = new Cell(contents);
@@ -109,6 +108,26 @@ namespace SS
             }
 
             return allDependents;
+        }
+
+        private void RecalculateDependecies(string name, Object contents)
+        {
+            if(contents is Formula)
+            {
+                Formula formula = (Formula)contents;
+                HashSet<String> variables = new HashSet<String>(formula.GetVariables());
+
+
+                //Replace the cell's old dependees with the variables it contains
+                dependencies.ReplaceDependees(name, variables);
+            }
+
+            //If the contents isn't a formula, remove this cell from the dependents of
+            //all of this cell's old dependees
+            else
+            {
+                dependencies.ReplaceDependees(name, new HashSet<String>());
+            }
         }
 
         private class Cell
