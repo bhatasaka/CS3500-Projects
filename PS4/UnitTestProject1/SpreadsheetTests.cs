@@ -3,7 +3,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SS;
 using SpreadsheetUtilities;
 using System.Collections.Generic;
-
+/// <summary>
+/// Contains the unit tests for the spreadsheet object in the SS namespace.
+/// Author: Bryan Hatasaka u1028471
+/// </summary>
 namespace SpreadsheetTests
 {
     [TestClass]
