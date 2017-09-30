@@ -14,7 +14,7 @@ namespace TipCalculator
         {
             computeTip();
         }
-
+ 
         private void initialTotalBillTextbox_TextChanged(object sender, EventArgs e)
         {
             if (validTextEntered())
