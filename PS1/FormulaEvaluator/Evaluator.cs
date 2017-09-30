@@ -51,7 +51,7 @@ namespace FormulaEvaluator
 
             //Used while evaluating
             String token;
-
+             
             //Traverses through the string
             foreach (String substring in substrings)
             {
