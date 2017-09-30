@@ -116,23 +116,16 @@ namespace SS
         private class Cell
         {
             private object p_contents;
-            private bool p_isString;
 
             public Cell(Object contents)
             {
                 p_contents = contents;
-                if (contents is String)
-                    p_isString = true;
             }
             public object Contents
             {
                 get { return p_contents; }
             }
 
-            public bool IsString
-            {
-                get { return p_isString; }
-            }
         }
     }
 }
