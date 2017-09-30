@@ -113,6 +113,15 @@ namespace SpreadsheetTests
 
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
+        public void testSetCellSimpleTextBadName2()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+
+            sheet.SetCellContents("_A*", "hello");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
         public void testSetCellSimpleFormulaBadName()
         {
             Spreadsheet sheet = new Spreadsheet();
@@ -123,22 +132,32 @@ namespace SpreadsheetTests
 
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
+        public void testSetCellSimpleTextNullName()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+
+            String name = null;
+            sheet.SetCellContents(name, "hello");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void testSetCellSimpleTextNullContents()
         {
             Spreadsheet sheet = new Spreadsheet();
             String text = null;
 
-            sheet.SetCellContents("46A", text);
+            sheet.SetCellContents("A46", text);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(InvalidNameException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void testSetCellSimpleFormulaNullContents()
         {
             Spreadsheet sheet = new Spreadsheet();
 
             Formula form = null;
-            sheet.SetCellContents("4_A", form);
+            sheet.SetCellContents("A_4", form);
         }
 
         [TestMethod]
@@ -183,7 +202,6 @@ namespace SpreadsheetTests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void testGetDirectDependentsNullName()
         {
             Spreadsheet sheet = new Spreadsheet();
@@ -196,7 +214,7 @@ namespace SpreadsheetTests
             }
             catch (System.Reflection.TargetInvocationException e)
             {
-                Assert.IsInstanceOfType(e.InnerException, typeof(InvalidNameException));
+                Assert.IsInstanceOfType(e.InnerException, typeof(ArgumentNullException));
             }
         }
 
