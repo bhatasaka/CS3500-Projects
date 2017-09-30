@@ -20,8 +20,11 @@ namespace SS
 
         public override object GetCellContents(string name)
         {
-            //Check and make sure is Formula is a thing
-            throw new NotImplementedException();
+            VerifyName(name);
+            if (!cells.ContainsKey(name))
+                return "";
+            Cell cell = cells[name];
+            return cell.Contents;
         }
 
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
@@ -51,6 +54,11 @@ namespace SS
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
+            //Necessary because VerifyName will throw an InvalidNameException if the 
+            //name is invalid and this method throws an Argument null exception if the
+            //name is invalid.
+            if (name == null)
+                throw new ArgumentNullException();
             VerifyName(name);
             return dependencies.GetDependents(name);
         }
@@ -58,7 +66,7 @@ namespace SS
         private static bool VerifyName(string name)
         {
             if (name == null)
-                throw new ArgumentNullException();
+                throw new InvalidNameException();
             char letter = name[0];
             //Checking the first character to be an _ or a letter
             if (letter != '_' || !Char.IsLetter(letter))
@@ -86,7 +94,7 @@ namespace SS
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
-            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name))
+            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>())
             {
                 name
             };
