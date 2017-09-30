@@ -569,7 +569,7 @@ namespace FormulaTester
         public void TestEqualsOpSimple()
         {
             Formula form = new Formula("5+6");
-            Formula form2 = new Formula("5.0 +      6E0");
+            Formula form2 = new Formula("5.0 +     6E0");
 
             Assert.IsTrue(form == form2);
         }
