@@ -26,7 +26,7 @@ namespace SS
 
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
-            throw new NotImplementedException();
+            return cells.Keys.ToArray<String>();
         }
 
         public override ISet<string> SetCellContents(string name, double number)
