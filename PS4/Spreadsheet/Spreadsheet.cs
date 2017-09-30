@@ -9,13 +9,13 @@ namespace SS
 {
     class Spreadsheet : AbstractSpreadsheet
     {
-        private DependencyGraph graph;
-        private HashSet<Cell> cells;
+        private DependencyGraph dependencies;
+        private Dictionary<String, Cell> cells;
 
         public Spreadsheet()
         {
-            graph = new DependencyGraph();
-            cells = new HashSet<Cell>();
+            dependencies = new DependencyGraph();
+            cells = new Dictionary<String,Cell>();
         }
 
         public override object GetCellContents(string name)
@@ -41,13 +41,18 @@ namespace SS
 
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
-            return HandleSetCell(name, formula);
+            HashSet<String> allDependents = HandleSetCell(name, formula);
+            foreach (String variable in formula.GetVariables())
+            {
+                dependencies.AddDependency(variable, name);
+            }
+            return allDependents;
         }
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
             VerifyName(name);
-            return graph.GetDependents(name);
+            return dependencies.GetDependents(name);
         }
 
         private static bool VerifyName(string name)
@@ -86,14 +91,16 @@ namespace SS
                 name
             };
 
-            Cell cell = new Cell(name, contents);
-
             //Checks if the cell already exists
-            if (cells.Contains(cell))
-                cells.Remove(cell); //Remove the cell if it exists already
+            if (cells.ContainsKey(name))
+                cells.Remove(name); //Remove the cell if it exists already
+
             //If the cell doesn't contain an empty string, add the new cell to the set
-            if (!cell.Contents.Equals(""))
-                cells.Add(cell);
+            if (!contents.Equals(""))
+            {
+                Cell cell = new Cell(contents);
+                cells.Add(name, cell);
+            }
 
             return allDependents;
         }
@@ -102,9 +109,8 @@ namespace SS
         {
             private object p_contents;
             private bool p_isString;
-            private string p_name;
 
-            public Cell(String name, Object contents)
+            public Cell(Object contents)
             {
                 p_contents = contents;
                 if (contents is String)
@@ -118,16 +124,6 @@ namespace SS
             public bool IsString
             {
                 get { return p_isString; }
-            }
-
-            public string Name
-            {
-                get { return p_name;  }
-            }
-
-            public override int GetHashCode()
-            {
-                return Name.GetHashCode();
             }
         }
     }
