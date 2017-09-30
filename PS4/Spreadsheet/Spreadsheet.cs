@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SS
 {
-    class Spreadsheet : AbstractSpreadsheet
+    public class Spreadsheet : AbstractSpreadsheet
     {
         private DependencyGraph dependencies;
         private Dictionary<String, Cell> cells;
@@ -63,25 +63,23 @@ namespace SS
             return dependencies.GetDependents(name);
         }
 
-        private static bool VerifyName(string name)
+        private static void VerifyName(string name)
         {
             if (name == null)
                 throw new InvalidNameException();
             char letter = name[0];
             //Checking the first character to be an _ or a letter
-            if (letter != '_' || !Char.IsLetter(letter))
-                return false;
+            if (!letter.Equals('_') && !Char.IsLetter(letter))
+                throw new InvalidNameException();
 
             // Traversing through the string to check that the rest of the characters are
             // letters, numbers or underscores
             for(int letterPos = 1; letterPos < name.Length; letterPos++)
             {
                 letter = name[letterPos];
-                if (letter != '_' && !Char.IsLetter(letter) && !Char.IsNumber(letter))
-                    return false;
+                if (!letter.Equals('_') && !Char.IsLetter(letter) && !Char.IsNumber(letter))
+                    throw new InvalidNameException();
             }
-
-            return true;
         }
 
         private HashSet<String> HandleSetCell(string name, Object contents)
