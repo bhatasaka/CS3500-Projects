@@ -21,6 +21,7 @@ namespace SpreadsheetTests
             sheet.SetCellContents("_A_4_", 1.1);
         }
 
+
         [TestMethod]
         public void testSetCellSimpleText()
         {
