@@ -220,6 +220,9 @@ namespace SS
         /// <returns></returns>
         private HashSet<String> HandleSetCell(string name, Object contents)
         {
+            HashSet<string> allDependentsForCell;
+            Cell oldCell = null;
+
             //Throws an InvalidNameException if the name is not valid
             VerifyName(name);
             if (contents == null)
@@ -228,17 +231,29 @@ namespace SS
             //Checks if the cell already exists
             if (cells.ContainsKey(name))
             {
+                oldCell = cells[name];
                 cells.Remove(name); //Remove the cell if it exists already
             }
-            RecalculateDependecies(name, contents);
+            HashSet<String> oldDependees = new HashSet<String> (RecalculateDependecies(name, contents));
 
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
-            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>())
+
+            try
             {
-                name
-            };
+                allDependentsForCell = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>());
+            }
+            catch (CircularException)
+            {
+                //If an exception is found, revert the dependency graph and contents then throw the exception
+                dependencies.ReplaceDependees(name, oldDependees);
+                if(oldCell != null)
+                {
+                    cells.Add(name, oldCell);
+                }
+                throw;
+            }
 
             //If the cell doesn't contain an empty string, add the new cell to the set
             // (otherwise it stays removed from the dictionary)
@@ -248,23 +263,30 @@ namespace SS
                 cells.Add(name, cell);
             }
 
-            return allDependents;
+            return allDependentsForCell;
         }
 
         /// <summary>
         /// Recaculates dependencies of the passed cell parameters.
         /// Will add and remove as needed.
         /// 
+        /// Returns the cell's old dependees. (If the cell is not a formula it had no dependees so an
+        /// empty set is returned)
+        /// 
         /// </summary>
         /// <param name="name"></param>
         /// <param name="contents"></param>
-        private void RecalculateDependecies(string name, Object contents)
+        private HashSet<String> RecalculateDependecies(string name, Object contents)
         {
+            HashSet<String> oldDependendees;
             if(contents is Formula)
             {
                 Formula formula = (Formula)contents;
                 //All of the variables in the current formula (aka new dependees)
                 HashSet<String> variables = new HashSet<String>(formula.GetVariables());
+
+                //Store cell's old dependees in case they need to be reverted
+                oldDependendees = new HashSet<String> (dependencies.GetDependees(name));
 
                 //Replace the cell's old dependees with the variables it contains
                 dependencies.ReplaceDependees(name, variables);
@@ -275,7 +297,10 @@ namespace SS
             else
             {
                 dependencies.ReplaceDependees(name, new HashSet<String>());
+                oldDependendees = new HashSet<string>();
             }
+
+            return oldDependendees;
         }
 
         /// <summary>
