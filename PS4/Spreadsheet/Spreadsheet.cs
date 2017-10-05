@@ -63,13 +63,29 @@ namespace SS
         // Used because of contant time access.
         private Dictionary<String, Cell> cells;
 
+        public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+
         /// <summary>
         /// Creates a spreadsheet object containing all empty cells.
         /// </summary>
-        public Spreadsheet()
+        public Spreadsheet() : base(s=>true, s=>s, "default")
         {
             dependencies = new DependencyGraph();
             cells = new Dictionary<String,Cell>();
+        }
+
+        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version): base(isValid, normalize, version)
+        {
+            dependencies = new DependencyGraph();
+            cells = new Dictionary<String, Cell>();
+        }
+
+        public Spreadsheet(String filePath, Func<string, bool> isValid, Func<string, string> normalize, string version)
+            : base(isValid, normalize, version)
+        {
+            dependencies = new DependencyGraph();
+            cells = new Dictionary<String, Cell>();
+            loadFile(filePath);
         }
 
         /// <summary>
@@ -108,7 +124,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public override ISet<string> SetCellContents(string name, double number)
+        protected override ISet<string> SetCellContents(string name, double number)
         {
             return HandleSetCell(name, number);
         }
@@ -125,7 +141,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public override ISet<string> SetCellContents(string name, string text)
+        protected override ISet<string> SetCellContents(string name, string text)
         {
             return HandleSetCell(name, text);
         }
@@ -145,7 +161,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public override ISet<string> SetCellContents(string name, Formula formula)
+        protected override ISet<string> SetCellContents(string name, Formula formula)
         {
             return HandleSetCell(name, formula);
         }
@@ -176,6 +192,26 @@ namespace SS
                 throw new ArgumentNullException();
             VerifyName(name);
             return dependencies.GetDependents(name);
+        }
+
+        public override string GetSavedVersion(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Save(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object GetCellValue(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ISet<string> SetContentsOfCell(string name, string content)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -235,10 +271,8 @@ namespace SS
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
-            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>())
-            {
-                name
-            };
+            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>());
+            //TODO reset back to normal if an exception is thrown
 
             //If the cell doesn't contain an empty string, add the new cell to the set
             // (otherwise it stays removed from the dictionary)
@@ -276,6 +310,10 @@ namespace SS
             {
                 dependencies.ReplaceDependees(name, new HashSet<String>());
             }
+        }
+        private void loadFile(string filePath)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
