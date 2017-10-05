@@ -211,7 +211,19 @@ namespace SS
 
         public override ISet<string> SetContentsOfCell(string name, string content)
         {
-            throw new NotImplementedException();
+            if(Double.TryParse(content, out double parsedDouble))
+            {
+                return SetCellContents(name, content);
+            }
+            else if (content[0].Equals('='))
+            {
+                Formula formula = new Formula(content, this.Normalize, this.IsValid);
+                return SetCellContents(name, formula);
+            }
+            else
+            {
+                return SetCellContents(name, content);
+            }
         }
 
         /// <summary>
