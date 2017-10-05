@@ -290,7 +290,7 @@ namespace SS
             // (otherwise it stays removed from the dictionary)
             if (!contents.Equals(""))
             {
-                Cell cell = new Cell(contents);
+                Cell cell = new Cell(contents, this);
                 cells.Add(name, cell);
             }
 
@@ -328,6 +328,12 @@ namespace SS
             throw new NotImplementedException();
         }
 
+        private double Lookup(String var)
+        {
+            //TODO handle no variable exists
+            return cells[var].Value;
+        }
+
         /// <summary>
         /// A cell is an object which contains an object that may be
         /// a double, a string or a Formula.
@@ -335,17 +341,8 @@ namespace SS
         private class Cell
         {
             private object p_contents;
-
-            /// <summary>
-            /// Creates a cell with the passed contents.
-            /// There is an invariant that say a cell will only have contents
-            /// that is a double, string or Formula.
-            /// </summary>
-            /// <param name="contents"></param>
-            public Cell(Object contents)
-            {
-                p_contents = contents;
-            }
+            private double p_value;
+            private Spreadsheet sheet;
 
             /// <summary>
             /// The contents of the cell object
@@ -353,6 +350,32 @@ namespace SS
             public object Contents
             {
                 get { return p_contents; }
+            }
+
+            public double Value
+            {
+                get { return p_value; }
+            }
+
+            /// <summary>
+            /// Creates a cell with the passed contents.
+            /// There is an invariant that say a cell will only have contents
+            /// that is a double, string or Formula.
+            /// </summary>
+            /// <param name="contents"></param>
+            public Cell(Object contents, Spreadsheet sheet)
+            {
+                p_contents = contents;
+                this.sheet = sheet;
+            }
+
+            public void CalculateValue()
+            {
+                if(p_contents is Formula)
+                {
+                    Formula form = (Formula)p_contents;
+                    p_value = form.Evaluate(sheet.Lookup);
+                }
             }
 
         }
