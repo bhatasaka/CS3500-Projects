@@ -268,6 +268,9 @@ namespace SS
         /// <returns></returns>
         private HashSet<String> HandleSetCell(string name, Object contents)
         {
+            HashSet<string> allDependentsForCell;
+            Cell oldCell = null;
+
             //Throws an InvalidNameException if the name is not valid
             VerifyName(name);
             if (contents == null)
@@ -276,25 +279,39 @@ namespace SS
             //Checks if the cell already exists
             if (cells.ContainsKey(name))
             {
+                oldCell = cells[name];
                 cells.Remove(name); //Remove the cell if it exists already
             }
-            RecalculateDependecies(name, contents);
+            HashSet<String> oldDependees = new HashSet<String>(RecalculateDependecies(name, contents));
 
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
-            HashSet<string> allDependents = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>());
-            //TODO reset back to normal if an exception is thrown
+
+            try
+            {
+                allDependentsForCell = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>());
+            }
+            catch (CircularException)
+            {
+                //If an exception is found, revert the dependency graph and contents then throw the exception
+                dependencies.ReplaceDependees(name, oldDependees);
+                if (oldCell != null)
+                {
+                    cells.Add(name, oldCell);
+                }
+                throw;
+            }
 
             //If the cell doesn't contain an empty string, add the new cell to the set
             // (otherwise it stays removed from the dictionary)
             if (!contents.Equals(""))
             {
-                Cell cell = new Cell(contents, this);
+                Cell cell = new Cell(contents, Lookup);
                 cells.Add(name, cell);
             }
 
-            return allDependents;
+            return allDependentsForCell;
         }
 
         /// <summary>
@@ -304,13 +321,17 @@ namespace SS
         /// </summary>
         /// <param name="name"></param>
         /// <param name="contents"></param>
-        private void RecalculateDependecies(string name, Object contents)
+        private HashSet<String> RecalculateDependecies(string name, Object contents)
         {
-            if(contents is Formula)
+            HashSet<String> oldDependendees;
+            if (contents is Formula)
             {
                 Formula formula = (Formula)contents;
                 //All of the variables in the current formula (aka new dependees)
                 HashSet<String> variables = new HashSet<String>(formula.GetVariables());
+
+                //Store cell's old dependees in case they need to be reverted
+                oldDependendees = new HashSet<String>(dependencies.GetDependees(name));
 
                 //Replace the cell's old dependees with the variables it contains
                 dependencies.ReplaceDependees(name, variables);
@@ -321,17 +342,29 @@ namespace SS
             else
             {
                 dependencies.ReplaceDependees(name, new HashSet<String>());
+                oldDependendees = new HashSet<string>();
             }
+
+            return oldDependendees;
         }
-        private void loadFile(string filePath)
+
+
+        private void LoadFile(string filePath)
         {
             throw new NotImplementedException();
         }
 
         private double Lookup(String var)
         {
-            //TODO handle no variable exists
-            return cells[var].Value;
+            Object cellValue = cells[var];
+            if(cellValue is double)
+            {
+                return (Double)cellValue;
+            }
+            else
+            {
+                throw new ArgumentException("A number value for the given variable could not be found");
+            }
         }
 
         /// <summary>
@@ -341,8 +374,7 @@ namespace SS
         private class Cell
         {
             private object p_contents;
-            private double p_value;
-            private Spreadsheet sheet;
+            private object p_value;
 
             /// <summary>
             /// The contents of the cell object
@@ -352,7 +384,7 @@ namespace SS
                 get { return p_contents; }
             }
 
-            public double Value
+            public object Value
             {
                 get { return p_value; }
             }
@@ -363,18 +395,18 @@ namespace SS
             /// that is a double, string or Formula.
             /// </summary>
             /// <param name="contents"></param>
-            public Cell(Object contents, Spreadsheet sheet)
+            public Cell(Object contents, Func<String, double> lookup)
             {
                 p_contents = contents;
-                this.sheet = sheet;
+                CalculateValue(lookup);
             }
 
-            public void CalculateValue()
+            public void CalculateValue(Func<String, double> lookup)
             {
                 if(p_contents is Formula)
                 {
                     Formula form = (Formula)p_contents;
-                    p_value = form.Evaluate(sheet.Lookup);
+                    p_value = form.Evaluate(lookup);
                 }
             }
 
