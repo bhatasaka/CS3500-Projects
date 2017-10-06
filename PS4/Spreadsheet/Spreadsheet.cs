@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 /// <summary>
 /// Author: Bryan Hatasaka
@@ -201,7 +202,16 @@ namespace SS
 
         public override void Save(string filename)
         {
-            throw new NotImplementedException();
+            using (XmlWriter writer = XmlWriter.Create(filename))
+            {
+                writer.WriteStartDocument();
+                writer.WriteAttributeString("Spreadsheet", this.Version);
+                foreach(String name in GetNamesOfAllNonemptyCells())
+                {
+                    cells[name].WriteXML(name, writer);
+                }
+                writer.WriteEndDocument();
+            }
         }
 
         public override object GetCellValue(string name)
@@ -215,6 +225,7 @@ namespace SS
             else
             {
                 //TODO
+                return 0;
             }
         }
 
@@ -422,6 +433,13 @@ namespace SS
                 }
             }
 
+            public void WriteXML(string name, XmlWriter writer)
+            {
+                writer.WriteStartElement("cell");
+                writer.WriteElementString("name", name);
+                writer.WriteElementString("contents", p_contents.ToString());
+                writer.WriteEndElement();
+            }
         }
     }
 }
