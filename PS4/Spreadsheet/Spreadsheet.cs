@@ -115,6 +115,28 @@ namespace SS
             return cells.Keys.ToArray<String>();
         }
 
+        public override ISet<string> SetContentsOfCell(string name, string content)
+        {
+            //Throws an InvalidNameException if the name is not valid
+            name = VerifyName(name);
+            if (content == null)
+                throw new ArgumentNullException();
+
+            if (Double.TryParse(content, out double parsedDouble))
+            {
+                return SetCellContents(name, parsedDouble);
+            }
+            else if (content.Length > 0 &&  content[0].Equals('='))
+            {
+                Formula formula = new Formula(content.Remove(0, 1), this.Normalize, this.IsValid);
+                return SetCellContents(name, formula);
+            }
+            else
+            {
+                return SetCellContents(name, content);
+            }
+        }
+
         /// <summary>
         /// If name is null or invalid, throws an InvalidNameException.
         /// 
@@ -202,15 +224,24 @@ namespace SS
 
         public override void Save(string filename)
         {
-            using (XmlWriter writer = XmlWriter.Create(filename))
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "  ";
+            settings.OmitXmlDeclaration = true;
+
+            using (XmlWriter writer = XmlWriter.Create(filename, settings))
             {
-                writer.WriteStartDocument();
-                writer.WriteAttributeString("Spreadsheet", this.Version);
+                writer.WriteStartElement("spreadsheet");
+                writer.WriteStartAttribute("version");
+                writer.WriteString(this.Version);
+                writer.WriteEndAttribute();
+
+                //writer.WriteAttributeString("Spreadsheet", this.Version);
                 foreach(String name in GetNamesOfAllNonemptyCells())
                 {
                     cells[name].WriteXML(name, writer);
                 }
-                writer.WriteEndDocument();
+                writer.WriteEndElement();
             }
         }
 
@@ -229,27 +260,12 @@ namespace SS
             }
         }
 
-        public override ISet<string> SetContentsOfCell(string name, string content)
-        {
-            if(Double.TryParse(content, out double parsedDouble))
-            {
-                return SetCellContents(name, content);
-            }
-            else if (content[0].Equals('='))
-            {
-                Formula formula = new Formula(content, this.Normalize, this.IsValid);
-                return SetCellContents(name, formula);
-            }
-            else
-            {
-                return SetCellContents(name, content);
-            }
-        }
-
         /// <summary>
         /// Helper method for the SetCellContents methods.
         /// Creates and adds valid cells to the object dictionary.
         /// Creates, adds and removes dependecies as needed.
+        /// Invariant that the cell name is valid as it was checked in SetContentsOfCell
+        /// 
         /// 
         /// Throws an InvalidNameException if the name is invalid or null
         /// Throws an ArgumentNullException if the contents are null
@@ -261,11 +277,6 @@ namespace SS
         {
             HashSet<string> allDependentsForCell;
             Cell oldCell = null;
-
-            //Throws an InvalidNameException if the name is not valid
-            name = VerifyName(name);
-            if (contents == null)
-                throw new ArgumentNullException();
 
             //Checks if the cell already exists
             if (cells.ContainsKey(name))

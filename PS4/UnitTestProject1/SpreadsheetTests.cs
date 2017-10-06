@@ -18,7 +18,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("_A_4_", 1.1);
+            sheet.SetContentsOfCell("_A_4_", "1.1");
         }
 
 
@@ -27,7 +27,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("_A_4_", "hello");
+            sheet.SetContentsOfCell("_A_4_", "hello");
         }
 
         [TestMethod]
@@ -35,8 +35,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            Formula form = new Formula("1 + 6");
-            sheet.SetCellContents("_A_4_", form);
+            sheet.SetContentsOfCell("_A_4_", "1 + 6");
         }
 
         [TestMethod]
@@ -44,10 +43,10 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("A4", 23);
+            sheet.SetContentsOfCell("A4", "23");
 
             Formula form = new Formula("1 + 6");
-            sheet.SetCellContents("A4", form);
+            sheet.SetContentsOfCell("A4", "=1 + 6");
 
             object contents = sheet.GetCellContents("A4");
             Assert.IsTrue(contents is Formula);
@@ -59,7 +58,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            HashSet<String> allDependents = new HashSet<String>(sheet.SetCellContents("A2", 5));
+            HashSet<String> allDependents = new HashSet<String>(sheet.SetContentsOfCell("A2", "5"));
             HashSet<String> expected = new HashSet<string>() { "A2" };
             Assert.IsTrue(expected.SetEquals(allDependents));
         }
@@ -69,8 +68,8 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("A1", new Formula("A2 + 6"));
-            HashSet<String> allDependents = new HashSet<String>(sheet.SetCellContents("A2", 5));
+            sheet.SetContentsOfCell("A1", "=A2 + 6");
+            HashSet<String> allDependents = new HashSet<String>(sheet.SetContentsOfCell("A2", "5"));
             HashSet<String> expected = new HashSet<string>() { "A1", "A2" };
 
             Assert.IsTrue(expected.SetEquals(allDependents));
@@ -81,16 +80,16 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("B1", 6);
-            sheet.SetCellContents("A1", new Formula("A2 + 6"));
-            sheet.SetCellContents("A3", new Formula("A2 + 5"));
+            sheet.SetContentsOfCell("B1", "6");
+            sheet.SetContentsOfCell("A1", "=A2 + 6");
+            sheet.SetContentsOfCell("A3", "=A2 + 5");
 
-            sheet.SetCellContents("A4", new Formula("A2 + 4"));
-            sheet.SetCellContents("A4", new Formula("B1 + 4"));
+            sheet.SetContentsOfCell("A4", "=A2 + 4");
+            sheet.SetContentsOfCell("A4", "=B1 + 4");
 
-            sheet.SetCellContents("A5", new Formula("A3 + 3"));
+            sheet.SetContentsOfCell("A5", "=A3 + 3");
 
-            HashSet<String> allDependents = new HashSet<String>(sheet.SetCellContents("A2", 5));
+            HashSet<String> allDependents = new HashSet<String>(sheet.SetContentsOfCell("A2", "5"));
             HashSet<String> expected = new HashSet<string>() { "A1", "A2", "A3", "A5" };
 
             Assert.IsTrue(expected.SetEquals(allDependents));
@@ -103,7 +102,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("46A", 1.1);
+            sheet.SetContentsOfCell("46A", "1.1");
         }
 
         [TestMethod]
@@ -112,7 +111,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("*letters4", "hello");
+            sheet.SetContentsOfCell("*letters4", "hello");
         }
 
         [TestMethod]
@@ -121,7 +120,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("_A*", "hello");
+            sheet.SetContentsOfCell("_A*", "hello");
         }
 
         [TestMethod]
@@ -130,8 +129,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            Formula form = new Formula("1 + 6");
-            sheet.SetCellContents("4_A", form);
+            sheet.SetContentsOfCell("4_A", "1 + 6");
         }
 
         [TestMethod]
@@ -141,7 +139,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
             String name = null;
-            sheet.SetCellContents(name, "hello");
+            sheet.SetContentsOfCell(name, "hello");
         }
 
         [TestMethod]
@@ -151,7 +149,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
             String text = null;
 
-            sheet.SetCellContents("A46", text);
+            sheet.SetContentsOfCell("A46", text);
         }
 
         [TestMethod]
@@ -160,8 +158,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            Formula form = null;
-            sheet.SetCellContents("A_4", form);
+            sheet.SetContentsOfCell("A_4", null);
         }
 
         [TestMethod]
@@ -170,8 +167,8 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("A1", new Formula("A2 - 6"));
-            sheet.SetCellContents("A2", new Formula("A1 + 6"));
+            sheet.SetContentsOfCell("A1", "=A2 - 6");
+            sheet.SetContentsOfCell("A2", "=A1 + 6");
         }
 
         [TestMethod]
@@ -180,7 +177,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("A1", new Formula("A1 - 6"));
+            sheet.SetContentsOfCell("A1", "=A1 - 6");
         }
 
         [TestMethod]
@@ -189,10 +186,10 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            sheet.SetCellContents("A1", new Formula("A2 - 6"));
-            sheet.SetCellContents("A2", new Formula("A3 + 6"));
-            sheet.SetCellContents("A3", new Formula("A4 + 6"));
-            sheet.SetCellContents("A4", new Formula("A1 + 6"));
+            sheet.SetContentsOfCell("A1", "=A2 - 6");
+            sheet.SetContentsOfCell("A2", "=A3 + 6");
+            sheet.SetContentsOfCell("A3", "=A4 + 6");
+            sheet.SetContentsOfCell("A4", "=A1 + 6");
         }
 
         [TestMethod]
@@ -202,7 +199,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
             String name = null;
-            sheet.SetCellContents(name, 1);
+            sheet.SetContentsOfCell(name, "1");
         }
 
         [TestMethod]
@@ -230,7 +227,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
 
-            sheet.SetCellContents("_A_4_", 1.1);
+            sheet.SetContentsOfCell("_A_4_", "1.1");
             object contents = sheet.GetCellContents("_A_4_");
 
             Assert.IsTrue(contents is double);
@@ -243,7 +240,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
 
-            sheet.SetCellContents("A4", "text");
+            sheet.SetContentsOfCell("A4", "text");
             object contents = sheet.GetCellContents("A4");
 
             Assert.IsTrue(contents is string);
@@ -256,7 +253,7 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
             Formula form = new Formula("1 + 6");
-            sheet.SetCellContents("A4", form);
+            sheet.SetContentsOfCell("A4", "=1 + 6");
             object contents = sheet.GetCellContents("A4");
             Assert.IsTrue(contents is Formula);
             Assert.AreEqual(form, (Formula)contents);
@@ -286,8 +283,8 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
 
             Formula form = new Formula("1 + 6");
-            sheet.SetCellContents("A4", form);
-            sheet.SetCellContents("A4", "");
+            sheet.SetContentsOfCell("A4", "1 + 6");
+            sheet.SetContentsOfCell("A4", "");
 
             Assert.IsTrue(new HashSet<String>().SetEquals(new HashSet<String>(sheet.GetNamesOfAllNonemptyCells())));
         }
@@ -296,8 +293,8 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsEmpty()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A5", 2.2);
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A5", "2.2");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] {"A4"});
@@ -309,8 +306,8 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsSimple()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A5", "=A4 - 6");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -324,9 +321,9 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsAddThenRemoveDouble()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
-            sheet.SetCellContents("A5", 1.2);
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A5", "A4 - 6");
+            sheet.SetContentsOfCell("A5", "1.2");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -340,9 +337,9 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsAddThenRemoveText()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
-            sheet.SetCellContents("A5", "hi");
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A5", "A4 - 6");
+            sheet.SetContentsOfCell("A5", "hi");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -356,9 +353,9 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsAddThenRemoveEmpty()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
-            sheet.SetCellContents("A5", "");
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A5", "=A4 - 6");
+            sheet.SetContentsOfCell("A5", "");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -373,10 +370,10 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsAddThenRemoveFormula()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A6", 4);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
-            sheet.SetCellContents("A5", new Formula("A6 + 2"));
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A6", "4");
+            sheet.SetContentsOfCell("A5", "=A4 - 6");
+            sheet.SetContentsOfCell("A5", "=A6 + 2");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object resultA4 = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -395,13 +392,13 @@ namespace SpreadsheetTests
         public void testGetDirectDependentsAddThenRemoveComplex()
         {
             Spreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A4", 1);
-            sheet.SetCellContents("A6", 4);
-            sheet.SetCellContents("A5", new Formula("A4 - 6"));
-            sheet.SetCellContents("A5", new Formula("A6 + 2"));
-            sheet.SetCellContents("A7", new Formula("A4 + 1"));
-            sheet.SetCellContents("A7", new Formula("A5 + 2"));
-            sheet.SetCellContents("A7", new Formula("A5 + 6"));
+            sheet.SetContentsOfCell("A4", "1");
+            sheet.SetContentsOfCell("A6", "4");
+            sheet.SetContentsOfCell("A5", "=A4 - 6");
+            sheet.SetContentsOfCell("A5", "=A6 + 2");
+            sheet.SetContentsOfCell("A7", "=A4 + 1");
+            sheet.SetContentsOfCell("A7", "=A5 + 2");
+            sheet.SetContentsOfCell("A7", "=A5 + 6");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object resultA4 = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
@@ -421,6 +418,17 @@ namespace SpreadsheetTests
             Assert.IsTrue(expectedA5.SetEquals(new HashSet<String>((IEnumerable<String>)resultA5)));
         }
 
+
+        [TestMethod]
+        public void testSaveFormat()
+        {
+            Spreadsheet sheet = new Spreadsheet(s => true, s => s, "default");
+            sheet.SetContentsOfCell("A1", "5");
+
+            sheet.Save("testSheet.XML");
+        }
+
+
         [TestMethod]
         public void stressTest()
         {
@@ -430,9 +438,9 @@ namespace SpreadsheetTests
 
             for(int i = 0; i < SIZE; i++)
             {
-                sheet.SetCellContents("A" + i, i);
-                sheet.SetCellContents("B" + i, "Number " + i);
-                sheet.SetCellContents("C" + i, new Formula("A" + i + " + 1"));
+                sheet.SetContentsOfCell("A" + i, i.ToString());
+                sheet.SetContentsOfCell("B" + i, "Number " + i);
+                sheet.SetContentsOfCell("C" + i, "=A" + i + " + 1");
 
                 cellNames.Add("A" + i);
                 cellNames.Add("B" + i);
