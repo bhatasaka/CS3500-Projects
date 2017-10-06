@@ -85,7 +85,7 @@ namespace SS
         {
             dependencies = new DependencyGraph();
             cells = new Dictionary<String, Cell>();
-            loadFile(filePath);
+            LoadFile(filePath);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace SS
         /// value should be either a string, a double, or a Formula.
         public override object GetCellContents(string name)
         {
-            VerifyName(name);
+            name = VerifyName(name);
             //Returns an empty string for empty cells
             if (!cells.ContainsKey(name))
                 return "";
@@ -190,7 +190,7 @@ namespace SS
             //name is invalid.
             if (name == null)
                 throw new ArgumentNullException();
-            VerifyName(name);
+            name = VerifyName(name);
             return dependencies.GetDependents(name);
         }
 
@@ -206,7 +206,16 @@ namespace SS
 
         public override object GetCellValue(string name)
         {
-            throw new NotImplementedException();
+            name = VerifyName(name);
+            if (cells.ContainsKey(name))
+            {
+                //Data protected through cell property
+                return cells[name].Contents;
+            }
+            else
+            {
+                //TODO
+            }
         }
 
         public override ISet<string> SetContentsOfCell(string name, string content)
@@ -227,35 +236,6 @@ namespace SS
         }
 
         /// <summary>
-        /// Verifies that the passed string is a valid name.
-        /// According to the class descripition:
-        /// A string is a valid cell name if and only if:
-        ///   (1) its first character is an underscore or a letter
-        ///   (2) its remaining characters (if any) are underscores and/or letters and/or digits
-        ///   
-        /// throws an InvalidNameException if the name is not valid.
-        /// </summary>
-        /// <param name="name"></param>
-        private static void VerifyName(string name)
-        {
-            if (name == null)
-                throw new InvalidNameException();
-            char letter = name[0];
-            //Checking the first character to be an _ or a letter
-            if (!letter.Equals('_') && !Char.IsLetter(letter))
-                throw new InvalidNameException();
-
-            // Traversing through the string to check that the rest of the characters are
-            // letters, numbers or underscores
-            for(int letterPos = 1; letterPos < name.Length; letterPos++)
-            {
-                letter = name[letterPos];
-                if (!letter.Equals('_') && !Char.IsLetter(letter) && !Char.IsNumber(letter))
-                    throw new InvalidNameException();
-            }
-        }
-
-        /// <summary>
         /// Helper method for the SetCellContents methods.
         /// Creates and adds valid cells to the object dictionary.
         /// Creates, adds and removes dependecies as needed.
@@ -272,7 +252,7 @@ namespace SS
             Cell oldCell = null;
 
             //Throws an InvalidNameException if the name is not valid
-            VerifyName(name);
+            name = VerifyName(name);
             if (contents == null)
                 throw new ArgumentNullException();
 
@@ -312,6 +292,38 @@ namespace SS
             }
 
             return allDependentsForCell;
+        }
+
+        /// <summary>
+        /// Verifies that the passed string is a valid name.
+        /// According to the class descripition:
+        /// A string is a valid cell name if and only if:
+        ///   (1) its first character is an underscore or a letter
+        ///   (2) its remaining characters (if any) are underscores and/or letters and/or digits
+        ///   
+        /// throws an InvalidNameException if the name is not valid.
+        /// </summary>
+        /// <param name="name"></param>
+        private string VerifyName(string name)
+        {
+            if (name == null)
+                throw new InvalidNameException();
+            char letter = name[0];
+            //Checking the first character to be an _ or a letter
+            if (!letter.Equals('_') && !Char.IsLetter(letter))
+                throw new InvalidNameException();
+
+            // Traversing through the string to check that the rest of the characters are
+            // letters, numbers or underscores
+            for (int letterPos = 1; letterPos < name.Length; letterPos++)
+            {
+                letter = name[letterPos];
+                if (!letter.Equals('_') && !Char.IsLetter(letter) && !Char.IsNumber(letter))
+                    throw new InvalidNameException();
+            }
+
+            //Return the normalized version of the name after it is validated
+            return Normalize(name);
         }
 
         /// <summary>
@@ -356,7 +368,7 @@ namespace SS
 
         private double Lookup(String var)
         {
-            Object cellValue = cells[var];
+            Object cellValue = GetCellValue(var);
             if(cellValue is double)
             {
                 return (Double)cellValue;
