@@ -282,8 +282,7 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet();
 
-            Formula form = new Formula("1 + 6");
-            sheet.SetContentsOfCell("A4", "1 + 6");
+            sheet.SetContentsOfCell("A4", "=1 + 6");
             sheet.SetContentsOfCell("A4", "");
 
             Assert.IsTrue(new HashSet<String>().SetEquals(new HashSet<String>(sheet.GetNamesOfAllNonemptyCells())));
@@ -424,13 +423,106 @@ namespace SpreadsheetTests
         {
             Spreadsheet sheet = new Spreadsheet(s => true, s => s, "default");
             sheet.SetContentsOfCell("A1", "5");
+            sheet.SetContentsOfCell("A2", "=1-A1 + 22");
 
-            sheet.Save("testSheet.XML");
+            sheet.Save("testSheet.xml");
         }
 
+        [TestMethod]
+        public void testConstructorLoadFile()
+        {
+            Spreadsheet sheet = new Spreadsheet(s => true, s => s, "default");
+            sheet.SetContentsOfCell("A1", "5");
+            sheet.SetContentsOfCell("A2", "=1-A1 + 22");
+
+            sheet.Save("testSheet.xml");
+
+            Spreadsheet sheet1 = new Spreadsheet("testSheet.xml", testSheets => true, s => s, "default");
+            Assert.IsTrue(new HashSet<String> { "A1", "A2" }.SetEquals(sheet1.GetNamesOfAllNonemptyCells()));
+        }
 
         [TestMethod]
-        public void stressTest()
+        public void testConstructorSetVersion()
+        {
+            Spreadsheet sheet = new Spreadsheet(s => true, s => s, "20.9");
+
+            Assert.AreEqual("20.9", sheet.Version);
+        }
+
+        //[TestMethod]
+        //public void testPrivateLoadFile()
+        //{
+        //    Spreadsheet sheet = new Spreadsheet();
+        //    PrivateObject sheetAcessor = new PrivateObject(sheet);
+
+        //    sheetAcessor.Invoke("LoadFile", new String[1] { "testSheet.XML" });
+
+        //    Assert.AreEqual(5, (Double)sheet.GetCellContents("A1"));
+        //}
+
+        [TestMethod]
+        public void testGetSavedVersion()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            //Test will fail if Save fails
+            sheet.Save("testSheet.xml");
+
+            Assert.AreEqual("default", sheet.GetSavedVersion("testSheet.xml"));
+        }
+
+        [TestMethod]
+        public void testGetValueSimpleAllThreeTypes()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "1");
+            sheet.SetContentsOfCell("A2", "=4 - 6");
+            sheet.SetContentsOfCell("A3", "Hello!");
+
+            Assert.AreEqual(1, (Double)sheet.GetCellValue("A1"));
+            Assert.AreEqual(-2, (Double)sheet.GetCellValue("A2"));
+            Assert.AreEqual("Hello!", (String)sheet.GetCellValue("A3"));
+        }
+
+        [TestMethod]
+        public void testGetValueSimpleDependentFormula()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "1");
+            sheet.SetContentsOfCell("A2", "=A1 - 6");
+
+            Assert.AreEqual(-5, (Double)sheet.GetCellValue("A2"));
+        }
+
+        [TestMethod]
+        public void testGetValueChangedFormula()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "1");
+            sheet.SetContentsOfCell("A2", "=A1 - 1");
+            sheet.SetContentsOfCell("A5", "=A4 - 1");
+            sheet.SetContentsOfCell("A4", "=A3 - 1");
+            sheet.SetContentsOfCell("A3", "=A2 - 1");
+
+            sheet.SetContentsOfCell("A1", "20");
+
+            Assert.AreEqual(19, (Double)sheet.GetCellValue("A2"));
+        }
+
+        [TestMethod]
+        public void testGetValueSimpleDependentFormulaError()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A2", "=A1 - 6");
+
+            Assert.IsTrue(sheet.GetCellValue("A2") is FormulaError);
+
+            sheet.SetContentsOfCell("A1", "1");
+
+            Assert.AreEqual(-5, (Double)sheet.GetCellValue("A2"));
+        }
+
+        [TestMethod]
+        public void stressTest1()
         {
             Spreadsheet sheet = new Spreadsheet();
             int SIZE = 2000;
@@ -455,6 +547,20 @@ namespace SpreadsheetTests
             }
 
             Assert.IsTrue(cellNames.SetEquals(new HashSet<String>(sheet.GetNamesOfAllNonemptyCells())));
+        }
+
+        [TestMethod]
+        public void stressTest2ManyDependeCells()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            int SIZE = 10;
+
+            for (int i = 0; i < SIZE; i++)
+            {
+                sheet.SetContentsOfCell("A" + i, "A" + (i+1));
+            }
+
+            sheet.GetCellValue("A1");
         }
     }
 }

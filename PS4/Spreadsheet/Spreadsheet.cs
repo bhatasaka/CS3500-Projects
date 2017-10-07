@@ -64,18 +64,24 @@ namespace SS
         // Used because of contant time access.
         private Dictionary<String, Cell> cells;
 
-        public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+        private bool p_changed;
+
+        public override bool Changed
+        {
+            get { return p_changed; }
+            protected set { p_changed = Changed; }
+        }
 
         /// <summary>
         /// Creates a spreadsheet object containing all empty cells.
         /// </summary>
-        public Spreadsheet() : base(s=>true, s=>s, "default")
+        public Spreadsheet() : base(s => true, s => s, "default")
         {
             dependencies = new DependencyGraph();
-            cells = new Dictionary<String,Cell>();
+            cells = new Dictionary<String, Cell>();
         }
 
-        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version): base(isValid, normalize, version)
+        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             dependencies = new DependencyGraph();
             cells = new Dictionary<String, Cell>();
@@ -122,11 +128,13 @@ namespace SS
             if (content == null)
                 throw new ArgumentNullException();
 
+            Changed = true;
+
             if (Double.TryParse(content, out double parsedDouble))
             {
                 return SetCellContents(name, parsedDouble);
             }
-            else if (content.Length > 0 &&  content[0].Equals('='))
+            else if (content.Length > 0 && content[0].Equals('='))
             {
                 Formula formula = new Formula(content.Remove(0, 1), this.Normalize, this.IsValid);
                 return SetCellContents(name, formula);
@@ -219,7 +227,26 @@ namespace SS
 
         public override string GetSavedVersion(string filename)
         {
-            throw new NotImplementedException();
+            XmlReader reader = XmlReader.Create(filename);
+            try
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement("spreadsheet"))
+                        return reader.GetAttribute(0);
+                }
+                reader.Close();
+            }
+            catch (Exception)
+            {
+
+            }
+            finally
+            {
+                reader.Dispose();
+            }
+
+            return "";
         }
 
         public override void Save(string filename)
@@ -227,22 +254,37 @@ namespace SS
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.Indent = true;
             settings.IndentChars = "  ";
-            settings.OmitXmlDeclaration = true;
 
-            using (XmlWriter writer = XmlWriter.Create(filename, settings))
+            XmlWriter writer = XmlWriter.Create(filename, settings);
+            try
             {
+                writer.WriteStartDocument();
                 writer.WriteStartElement("spreadsheet");
+
                 writer.WriteStartAttribute("version");
                 writer.WriteString(this.Version);
                 writer.WriteEndAttribute();
 
-                //writer.WriteAttributeString("Spreadsheet", this.Version);
-                foreach(String name in GetNamesOfAllNonemptyCells())
+                foreach (String name in GetNamesOfAllNonemptyCells())
                 {
                     cells[name].WriteXML(name, writer);
                 }
+
                 writer.WriteEndElement();
+                writer.WriteEndDocument();
+                writer.Close();
             }
+            catch (Exception)
+            {
+                throw new SpreadsheetReadWriteException("While attempting to save the file," +
+                    " a problem occured. Try a different filename.");
+            }
+            finally
+            {
+                writer.Dispose();
+            }
+
+            Changed = false;
         }
 
         public override object GetCellValue(string name)
@@ -251,12 +293,13 @@ namespace SS
             if (cells.ContainsKey(name))
             {
                 //Data protected through cell property
-                return cells[name].Contents;
+                return cells[name].Value;
             }
             else
             {
-                //TODO
-                return 0;
+                //Return an empty string as a cell that doesn't exist has both the contents of
+                //and empty string and a value of an empty string.
+                return "";
             }
         }
 
@@ -284,12 +327,11 @@ namespace SS
                 oldCell = cells[name];
                 cells.Remove(name); //Remove the cell if it exists already
             }
-            HashSet<String> oldDependees = new HashSet<String>(RecalculateDependecies(name, contents));
+            HashSet<String> oldDependees = RecalculateDependecies(name, contents);
 
             //Makes a new HashSet of all of the cells that will be affected by changing this cell
             // plus this cell.
             //Throws a CircularException if there is a circular dependency.
-
             try
             {
                 allDependentsForCell = new HashSet<string>(GetCellsToRecalculate(name).ToArray<string>());
@@ -311,6 +353,13 @@ namespace SS
             {
                 Cell cell = new Cell(contents, Lookup);
                 cells.Add(name, cell);
+            }
+
+            //Recalculates all of the values that depend on this cell, except for the current cell
+            //This is important if the cell is an empty string and doesn't exist in the dictionary
+            foreach (String dependent in allDependentsForCell.Skip(1))
+            {
+                cells[dependent].CalculateValue(Lookup);
             }
 
             return allDependentsForCell;
@@ -351,6 +400,7 @@ namespace SS
         /// <summary>
         /// Recaculates dependencies of the passed cell parameters.
         /// Will add and remove as needed.
+        /// Returns the old dependees of the passed cell
         /// 
         /// </summary>
         /// <param name="name"></param>
@@ -361,6 +411,7 @@ namespace SS
             if (contents is Formula)
             {
                 Formula formula = (Formula)contents;
+
                 //All of the variables in the current formula (aka new dependees)
                 HashSet<String> variables = new HashSet<String>(formula.GetVariables());
 
@@ -385,13 +436,53 @@ namespace SS
 
         private void LoadFile(string filePath)
         {
-            throw new NotImplementedException();
+            XmlReader reader = XmlReader.Create(filePath);
+            try
+            {
+                String name = null;
+                String contents = null;
+
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        switch (reader.Name)
+                        {
+                            case "name":
+                                reader.Read();
+                                name = reader.Value;
+                                break;
+                            case "contents":
+                                reader.Read();
+                                contents = reader.Value;
+                                break;
+                        }
+                    }
+
+                    if (name != null && contents != null)
+                    {
+                        SetContentsOfCell(name, contents);
+                        name = null;
+                        contents = null;
+                    }
+                }
+
+                reader.Close();
+            }
+            catch (Exception)
+            {
+                throw new SpreadsheetReadWriteException("File cannot be properly read");
+            }
+            finally
+            {
+                reader.Dispose();
+            }
         }
 
         private double Lookup(String var)
         {
             Object cellValue = GetCellValue(var);
-            if(cellValue is double)
+            if (cellValue is double)
             {
                 return (Double)cellValue;
             }
@@ -437,18 +528,24 @@ namespace SS
 
             public void CalculateValue(Func<String, double> lookup)
             {
-                if(p_contents is Formula)
+                if (p_contents is Formula)
                 {
                     Formula form = (Formula)p_contents;
                     p_value = form.Evaluate(lookup);
                 }
+                else
+                    p_value = p_contents;
             }
 
             public void WriteXML(string name, XmlWriter writer)
             {
                 writer.WriteStartElement("cell");
                 writer.WriteElementString("name", name);
-                writer.WriteElementString("contents", p_contents.ToString());
+                if (p_contents is Formula)
+                    writer.WriteElementString("contents", "=" + p_contents.ToString());
+                else
+                    writer.WriteElementString("contents", p_contents.ToString());
+
                 writer.WriteEndElement();
             }
         }
