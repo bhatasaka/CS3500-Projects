@@ -66,14 +66,20 @@ namespace SS
 
         private bool p_changed;
 
+        /// <summary>
+        /// True if this spreadsheet has been modified since it was created or saved                  
+        /// (whichever happened most recently); false otherwise.
+        /// </summary>
         public override bool Changed
         {
             get { return p_changed; }
-            protected set { p_changed = Changed; }
+            protected set { p_changed = value; }
         }
 
         /// <summary>
         /// Creates a spreadsheet object containing all empty cells.
+        /// Imposes no extra validity conditions, normalizes every cell
+        /// name to itself, and has version "default"
         /// </summary>
         public Spreadsheet() : base(s => true, s => s, "default")
         {
@@ -81,12 +87,38 @@ namespace SS
             cells = new Dictionary<String, Cell>();
         }
 
+        /// <summary>
+        /// Constructs a spreadsheet by recording its variable validity test,
+        /// its normalization method, and its version information.  The variable validity
+        /// test is used throughout to determine whether a string that consists of one or
+        /// more letters followed by one or more digits is a valid cell name.  The variable
+        /// equality test should be used thoughout to determine whether two variables are
+        /// equal.
+        /// </summary>
+        /// 
+        /// <param name="isValid"></param>
+        /// <param name="normalize"></param>
+        /// <param name="version"></param>
         public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             dependencies = new DependencyGraph();
             cells = new Dictionary<String, Cell>();
         }
 
+        /// <summary>
+        /// Constructs a spreadsheet by recording its variable validity test,
+        /// its normalization method, and its version information.  The variable validity
+        /// test is used throughout to determine whether a string that consists of one or
+        /// more letters followed by one or more digits is a valid cell name.  The variable
+        /// equality test should be used thoughout to determine whether two variables are
+        /// equal.
+        /// Takes in a file path to load a file.
+        /// </summary>
+        /// 
+        /// <param name="filePath"></param>
+        /// <param name="isValid"></param>
+        /// <param name="normalize"></param>
+        /// <param name="version"></param>
         public Spreadsheet(String filePath, Func<string, bool> isValid, Func<string, string> normalize, string version)
             : base(isValid, normalize, version)
         {
@@ -100,6 +132,9 @@ namespace SS
         /// 
         /// Otherwise, returns the contents (as opposed to the value) of the named cell.  The return
         /// value should be either a string, a double, or a Formula.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public override object GetCellContents(string name)
         {
             name = VerifyName(name);
@@ -115,12 +150,45 @@ namespace SS
         /// <summary>
         /// Enumerates the names of all the non-empty cells in the spreadsheet.
         /// </summary>
+        /// <returns></returns>
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
             //Returns a copy for data protection
             return cells.Keys.ToArray<String>();
         }
 
+        /// <summary>
+        /// If content is null, throws an ArgumentNullException.
+        /// 
+        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, if content parses as a double, the contents of the named
+        /// cell becomes that double.
+        /// 
+        /// Otherwise, if content begins with the character '=', an attempt is made
+        /// to parse the remainder of content into a Formula f using the Formula
+        /// constructor.  There are then three possibilities:
+        /// 
+        ///   (1) If the remainder of content cannot be parsed into a Formula, a 
+        ///       SpreadsheetUtilities.FormulaFormatException is thrown.
+        ///       
+        ///   (2) Otherwise, if changing the contents of the named cell to be f
+        ///       would cause a circular dependency, a CircularException is thrown.
+        ///       
+        ///   (3) Otherwise, the contents of the named cell becomes f.
+        /// 
+        /// Otherwise, the contents of the named cell becomes content.
+        /// 
+        /// If an exception is not thrown, the method returns a set consisting of
+        /// name plus the names of all other cells whose value depends, directly
+        /// or indirectly, on the named cell.
+        /// 
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public override ISet<string> SetContentsOfCell(string name, string content)
         {
             //Throws an InvalidNameException if the name is not valid
@@ -128,7 +196,7 @@ namespace SS
             if (content == null)
                 throw new ArgumentNullException();
 
-            Changed = true;
+            p_changed = true;
 
             if (Double.TryParse(content, out double parsedDouble))
             {
@@ -139,7 +207,7 @@ namespace SS
                 Formula formula = new Formula(content.Remove(0, 1), this.Normalize, this.IsValid);
                 return SetCellContents(name, formula);
             }
-            else
+            else //content is a string
             {
                 return SetCellContents(name, content);
             }
@@ -155,6 +223,9 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
         protected override ISet<string> SetCellContents(string name, double number)
         {
             return HandleSetCell(name, number);
@@ -172,6 +243,9 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
         protected override ISet<string> SetCellContents(string name, string text)
         {
             return HandleSetCell(name, text);
@@ -192,6 +266,9 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="formula"></param>
+        /// <returns></returns>
         protected override ISet<string> SetCellContents(string name, Formula formula)
         {
             return HandleSetCell(name, formula);
@@ -214,6 +291,8 @@ namespace SS
         /// D1 contains the formula B1 - C1
         /// The direct dependents of A1 are B1 and C1
         /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
             //Necessary because VerifyName will throw an InvalidNameException if the 
@@ -225,30 +304,64 @@ namespace SS
             return dependencies.GetDependents(name);
         }
 
+        /// <summary>
+        /// Returns the version information of the spreadsheet saved in the named file.
+        /// If there are any problems opening, reading, or closing the file, the method
+        /// should throw a SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
         public override string GetSavedVersion(string filename)
         {
-            XmlReader reader = XmlReader.Create(filename);
             try
             {
-                while (reader.Read())
+                //Using will close the reader if an exception is found. Otherwise if the file doesn't exist,
+                // multiple try catch blocks are needed anyway.
+                using (XmlReader reader = XmlReader.Create(filename))
                 {
-                    if (reader.IsStartElement("spreadsheet"))
-                        return reader.GetAttribute(0);
+                    while (reader.Read())
+                    {
+                        if (reader.IsStartElement("spreadsheet"))
+                            return reader.GetAttribute(0);
+                    }
                 }
-                reader.Close();
+
             }
             catch (Exception)
             {
-
-            }
-            finally
-            {
-                reader.Dispose();
+                throw new SpreadsheetReadWriteException("Could not get version. Check filename/file.");
             }
 
-            return "";
+            //If an XML file that doesn't follow this format/doesn't have a version is read, throw an exception
+            throw new SpreadsheetReadWriteException("Could not get version, check filename/file.");
         }
 
+        /// <summary>
+        /// Writes the contents of this spreadsheet to the named file using an XML format.
+        /// The XML elements should be structured as follows:
+        /// 
+        /// <spreadsheet version="version information goes here">
+        /// 
+        /// <cell>
+        /// <name>
+        /// cell name goes here
+        /// </name>
+        /// <contents>
+        /// cell contents goes here
+        /// </contents>    
+        /// </cell>
+        /// 
+        /// </spreadsheet>
+        /// 
+        /// There should be one cell element for each non-empty cell in the spreadsheet.  
+        /// If the cell contains a string, it should be written as the contents.  
+        /// If the cell contains a double d, d.ToString() should be written as the contents.  
+        /// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
+        /// 
+        /// If there are any problems opening, writing, or closing the file, the method should throw a
+        /// SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
+        /// <param name="filename"></param>
         public override void Save(string filename)
         {
             XmlWriterSettings settings = new XmlWriterSettings();
@@ -258,35 +371,42 @@ namespace SS
             XmlWriter writer = XmlWriter.Create(filename, settings);
             try
             {
-                writer.WriteStartDocument();
-                writer.WriteStartElement("spreadsheet");
-
-                writer.WriteStartAttribute("version");
-                writer.WriteString(this.Version);
-                writer.WriteEndAttribute();
-
-                foreach (String name in GetNamesOfAllNonemptyCells())
                 {
-                    cells[name].WriteXML(name, writer);
-                }
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("spreadsheet");
 
-                writer.WriteEndElement();
-                writer.WriteEndDocument();
-                writer.Close();
+                    writer.WriteStartAttribute("version");
+                    writer.WriteString(this.Version);
+                    writer.WriteEndAttribute();
+
+                    foreach (String name in GetNamesOfAllNonemptyCells())
+                    {
+                        cells[name].WriteXML(name, writer);
+                    }
+
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                    writer.Close();
+                }
             }
             catch (Exception)
             {
                 throw new SpreadsheetReadWriteException("While attempting to save the file," +
-                    " a problem occured. Try a different filename.");
-            }
-            finally
-            {
-                writer.Dispose();
+                    " a problem occured. Check the name and location.");
             }
 
-            Changed = false;
+
+            p_changed = false;
         }
 
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, returns the value (as opposed to the contents) of the named cell.  The return
+        /// value should be either a string, a double, or a SpreadsheetUtilities.FormulaError.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public override object GetCellValue(string name)
         {
             name = VerifyName(name);
@@ -433,52 +553,66 @@ namespace SS
             return oldDependendees;
         }
 
-
+        /// <summary>
+        /// Reads a spreadsheet xml file from the given filename and 
+        /// adds every new cell and its contents to the spreadsheet object.
+        /// 
+        /// Throws an exception if the file cannot be found or another error happens while reading.
+        /// </summary>
+        /// <param name="filePath"></param>
         private void LoadFile(string filePath)
         {
-            XmlReader reader = XmlReader.Create(filePath);
             try
             {
-                String name = null;
-                String contents = null;
-
-                while (reader.Read())
+                //Using allows the reader to be disposed if an exception is thrown.
+                //The outer try catch allows an exception to be caught (such as a FileNotFoundException, which
+                // using or a single try/catch does not allow, as the reader cannot be disposed of for a bad filename)
+                using (XmlReader reader = XmlReader.Create(filePath))
                 {
-                    if (reader.IsStartElement())
+                    String name = null;
+                    String contents = null;
+
+                    while (reader.Read())
                     {
-                        switch (reader.Name)
+                        if (reader.IsStartElement())
                         {
-                            case "name":
-                                reader.Read();
-                                name = reader.Value;
-                                break;
-                            case "contents":
-                                reader.Read();
-                                contents = reader.Value;
-                                break;
+                            switch (reader.Name)
+                            {
+                                case "name":
+                                    reader.Read();
+                                    name = reader.Value;
+                                    break;
+                                case "contents":
+                                    reader.Read();
+                                    contents = reader.Value;
+                                    break;
+                            }
+                        }
+
+                        if (name != null && contents != null)
+                        {
+                            SetContentsOfCell(name, contents);
+                            name = null;
+                            contents = null;
                         }
                     }
 
-                    if (name != null && contents != null)
-                    {
-                        SetContentsOfCell(name, contents);
-                        name = null;
-                        contents = null;
-                    }
+                    reader.Close();
                 }
-
-                reader.Close();
             }
             catch (Exception)
             {
                 throw new SpreadsheetReadWriteException("File cannot be properly read");
             }
-            finally
-            {
-                reader.Dispose();
-            }
         }
 
+        /// <summary>
+        /// Will return the value of the cell at the given index.
+        /// Throws an exception if the value is not a double
+        /// 
+        /// </summary>
+        /// <param name="var"></param>
+        /// <returns></returns>
         private double Lookup(String var)
         {
             Object cellValue = GetCellValue(var);
@@ -526,17 +660,37 @@ namespace SS
                 CalculateValue(lookup);
             }
 
+            /// <summary>
+            /// Calculates the value of this cell object given the current 
+            /// contents of the cell.
+            /// </summary>
+            /// <param name="lookup"></param>
             public void CalculateValue(Func<String, double> lookup)
             {
-                if (p_contents is Formula)
+                if (p_contents is Formula form)
                 {
-                    Formula form = (Formula)p_contents;
+                    form = (Formula)p_contents;
                     p_value = form.Evaluate(lookup);
                 }
                 else
                     p_value = p_contents;
             }
 
+            /// <summary>
+            /// Writes this cell object to the given XmlWriter in the following format:
+            /// <cell>
+            ///     <name>
+            ///     cell name goes here
+            ///     </name>
+            ///     
+            ///     <contents>
+            ///     cell contents goes here
+            ///     </contents>    
+            /// </cell>
+            /// 
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="writer"></param>
             public void WriteXML(string name, XmlWriter writer)
             {
                 writer.WriteStartElement("cell");

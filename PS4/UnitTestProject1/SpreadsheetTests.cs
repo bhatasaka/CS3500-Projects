@@ -3,8 +3,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SS;
 using SpreadsheetUtilities;
 using System.Collections.Generic;
+using System.Diagnostics;
 /// <summary>
 /// Contains the unit tests for the spreadsheet object in the SS namespace.
+/// PS5 Branch.
 /// Author: Bryan Hatasaka u1028471
 /// </summary>
 namespace SpreadsheetTests
@@ -173,6 +175,25 @@ namespace SpreadsheetTests
 
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
+        public void testSetCellComplexCircularException()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+
+            sheet.SetContentsOfCell("A1", "=A2 - 6");
+            sheet.SetContentsOfCell("A2", "4");
+            try
+            {
+                sheet.SetContentsOfCell("A2", "=A1 + 6");
+            }
+            catch (CircularException)
+            {
+                Assert.AreEqual(4, (Double)sheet.GetCellContents("A2"));
+                throw;
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
         public void testSetCellSimpleCircularExceptionItself()
         {
             Spreadsheet sheet = new Spreadsheet();
@@ -202,6 +223,7 @@ namespace SpreadsheetTests
             sheet.SetContentsOfCell(name, "1");
         }
 
+
         [TestMethod]
         public void testGetDirectDependentsNullName()
         {
@@ -211,7 +233,7 @@ namespace SpreadsheetTests
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             try
             {
-            object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { name });
+                object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { name });
             }
             catch (System.Reflection.TargetInvocationException e)
             {
@@ -219,6 +241,28 @@ namespace SpreadsheetTests
             }
         }
 
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testGetSavedVersionBadFilename()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+
+            sheet.GetSavedVersion("thisisnotarealfile");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testConstructorBadFilename()
+        {
+            Spreadsheet sheet = new Spreadsheet("thisisnotarealfile", s => true, s => s, "default");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testSaveBadFilename()
+        {
+            Spreadsheet sheet = new Spreadsheet("1:\\Folder", s => true, s => s, "default");
+        }
 
         //Testing other methods
         [TestMethod]
@@ -296,7 +340,7 @@ namespace SpreadsheetTests
             sheet.SetContentsOfCell("A5", "2.2");
 
             PrivateObject sheetAccessor = new PrivateObject(sheet);
-            object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] {"A4"});
+            object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
             Assert.IsTrue(result is IEnumerable<String>);
             Assert.IsTrue(new HashSet<String>().SetEquals(new HashSet<String>((IEnumerable<String>)result)));
         }
@@ -327,7 +371,7 @@ namespace SpreadsheetTests
             PrivateObject sheetAccessor = new PrivateObject(sheet);
             object result = sheetAccessor.Invoke("GetDirectDependents", new String[1] { "A4" });
 
-            HashSet<String> expected = new HashSet<string>() {  };
+            HashSet<String> expected = new HashSet<string>() { };
             Assert.IsTrue(result is IEnumerable<String>);
             Assert.IsTrue(expected.SetEquals(new HashSet<String>((IEnumerable<String>)result)));
         }
@@ -522,13 +566,28 @@ namespace SpreadsheetTests
         }
 
         [TestMethod]
+        public void testChanged()
+        {
+            Spreadsheet sheet = new Spreadsheet();
+            Assert.IsFalse(sheet.Changed);
+
+            sheet.SetContentsOfCell("A1", "1");
+            sheet.SetContentsOfCell("A2", "=A1 - 6");
+
+            Assert.IsTrue(sheet.Changed);
+            sheet.Save("testSheetChanged");
+
+            Assert.IsFalse(sheet.Changed);
+        }
+
+        [TestMethod]
         public void stressTest1()
         {
             Spreadsheet sheet = new Spreadsheet();
             int SIZE = 2000;
             HashSet<String> cellNames = new HashSet<String>();
 
-            for(int i = 0; i < SIZE; i++)
+            for (int i = 0; i < SIZE; i++)
             {
                 sheet.SetContentsOfCell("A" + i, i.ToString());
                 sheet.SetContentsOfCell("B" + i, "Number " + i);
@@ -555,12 +614,20 @@ namespace SpreadsheetTests
             Spreadsheet sheet = new Spreadsheet();
             int SIZE = 10;
 
+            int nextCell;
             for (int i = 0; i < SIZE; i++)
             {
-                sheet.SetContentsOfCell("A" + i, "A" + (i+1));
+                nextCell = i + 1;
+                sheet.SetContentsOfCell("A" + i, "=A" + nextCell + " + 1");
             }
+            sheet.SetContentsOfCell("A" + SIZE, "1");
 
-            sheet.GetCellValue("A1");
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            Assert.AreEqual((Double)SIZE, sheet.GetCellValue("A1"));
+            watch.Stop();
+            TimeSpan elapsed = watch.Elapsed;
+            Assert.IsTrue(elapsed.Seconds < 10);
         }
     }
 }
