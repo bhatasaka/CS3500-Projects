@@ -4,6 +4,7 @@ using SS;
 using SpreadsheetUtilities;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Xml;
 /// <summary>
 /// Contains the unit tests for the spreadsheet object in the SS namespace.
 /// PS5 Branch.
@@ -252,16 +253,29 @@ namespace SpreadsheetTests
 
         [TestMethod]
         [ExpectedException(typeof(SpreadsheetReadWriteException))]
-        public void testConstructorBadFilename()
+        public void testGetSavedVersionBadFile()
         {
-            Spreadsheet sheet = new Spreadsheet("thisisnotarealfile", s => true, s => s, "default");
+            using(XmlWriter writer = XmlWriter.Create("testBadXmlFile.xml"))
+            {
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("badElement");
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                    writer.Close();
+                }
+            }
+
+            Spreadsheet sheet = new Spreadsheet();
+
+            sheet.GetSavedVersion("testBadXmlFile.xml");
         }
 
         [TestMethod]
         [ExpectedException(typeof(SpreadsheetReadWriteException))]
-        public void testSaveBadFilename()
+        public void testConstructorBadFilename()
         {
-            Spreadsheet sheet = new Spreadsheet("1:\\Folder", s => true, s => s, "default");
+            Spreadsheet sheet = new Spreadsheet("thisisnotarealfile", s => true, s => s, "default");
         }
 
         //Testing other methods

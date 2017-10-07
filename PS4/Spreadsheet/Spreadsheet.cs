@@ -196,7 +196,7 @@ namespace SS
             if (content == null)
                 throw new ArgumentNullException();
 
-            p_changed = true;
+            Changed = true;
 
             if (Double.TryParse(content, out double parsedDouble))
             {
@@ -396,7 +396,7 @@ namespace SS
             }
 
 
-            p_changed = false;
+            Changed = false;
         }
 
         /// <summary>
