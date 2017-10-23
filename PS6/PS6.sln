@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadsheetGUI", "SpreadsheetGUI\SpreadsheetGUI.csproj", "{3F7CDBB7-B514-4D67-BA54-03E2EE12BFE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resources", "Resources\Resources.csproj", "{C8A55CE0-197C-4172-9E25-EAC073421471}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F7CDBB7-B514-4D67-BA54-03E2EE12BFE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F7CDBB7-B514-4D67-BA54-03E2EE12BFE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F7CDBB7-B514-4D67-BA54-03E2EE12BFE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F7CDBB7-B514-4D67-BA54-03E2EE12BFE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8A55CE0-197C-4172-9E25-EAC073421471}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8A55CE0-197C-4172-9E25-EAC073421471}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8A55CE0-197C-4172-9E25-EAC073421471}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8A55CE0-197C-4172-9E25-EAC073421471}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {18CA14FB-EC73-4432-B440-85A938989CA0}
+	EndGlobalSection
+EndGlobal
