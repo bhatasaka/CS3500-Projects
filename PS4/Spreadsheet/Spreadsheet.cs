@@ -368,32 +368,33 @@ namespace SS
             settings.Indent = true;
             settings.IndentChars = "  ";
 
-            XmlWriter writer = XmlWriter.Create(filename, settings);
-            try
-            {
+                try
                 {
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("spreadsheet");
-
-                    writer.WriteStartAttribute("version");
-                    writer.WriteString(this.Version);
-                    writer.WriteEndAttribute();
-
-                    foreach (String name in GetNamesOfAllNonemptyCells())
+                    using (XmlWriter writer = XmlWriter.Create(filename, settings))
                     {
-                        cells[name].WriteXML(name, writer);
-                    }
+                        writer.WriteStartDocument();
+                        writer.WriteStartElement("spreadsheet");
 
-                    writer.WriteEndElement();
-                    writer.WriteEndDocument();
-                    writer.Close();
+                        writer.WriteStartAttribute("version");
+                        writer.WriteString(this.Version);
+                        writer.WriteEndAttribute();
+
+                        foreach (String name in GetNamesOfAllNonemptyCells())
+                        {
+                            cells[name].WriteXML(name, writer);
+                        }
+
+                        writer.WriteEndElement();
+                        writer.WriteEndDocument();
+                        writer.Close();
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                throw new SpreadsheetReadWriteException("While attempting to save the file," +
-                    " a problem occured. Check the name and location.");
-            }
+                catch (Exception)
+                {
+                    throw new SpreadsheetReadWriteException("While attempting to save the file," +
+                        " a problem occured. Check the name and location.");
+                }
+
 
 
             Changed = false;
@@ -513,6 +514,9 @@ namespace SS
                     throw new InvalidNameException();
             }
 
+            if (!IsValid(name))
+                throw new InvalidNameException();
+                
             //Return the normalized version of the name after it is validated
             return Normalize(name);
         }
