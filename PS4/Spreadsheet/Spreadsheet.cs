@@ -124,6 +124,8 @@ namespace SS
         {
             dependencies = new DependencyGraph();
             cells = new Dictionary<String, Cell>();
+            if (GetSavedVersion(filePath) != version)
+                throw new SpreadsheetReadWriteException("Versions do not match");
             LoadFile(filePath);
         }
 
