@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
-    public partial class Form1 : Form
+    public partial class PS6 : Form
     {
-        public Form1()
+        public PS6()
         {
             InitializeComponent();
         }
