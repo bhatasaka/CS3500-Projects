@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SS;
+using SpreadsheetUtilities;
 
 namespace SpreadsheetGUI
 {
@@ -29,7 +30,11 @@ namespace SpreadsheetGUI
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
-            ContentsBox.Text = spreadsheet.GetCellContents(cellName).ToString();
+            object cellContents = spreadsheet.GetCellContents(cellName);
+            if (cellContents is Formula)
+                ContentsBox.Text = "=" + cellContents;
+            else
+                ContentsBox.Text = cellContents.ToString();
         }
 
         private string GetCellName(int col, int row)
@@ -46,7 +51,9 @@ namespace SpreadsheetGUI
             string cellName = GetCellName(col, row);
             spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
 
-            p.SetValue(col, row, spreadsheet.GetCellValue(cellName).ToString());
+            object cellValue = spreadsheet.GetCellValue(cellName);
+
+            p.SetValue(col, row, cellValue.ToString());
         }
 
         private void EnterButton_Click(object sender, EventArgs e)
