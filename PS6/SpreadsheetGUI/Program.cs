@@ -59,8 +59,13 @@ namespace SpreadsheetGUI
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            //args[1] is the filename/path
+            if(args.Count() == 2)
+            {
+                //load the app with the file
+            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
