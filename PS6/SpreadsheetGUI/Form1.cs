@@ -13,9 +13,11 @@ namespace SpreadsheetGUI
 {
     public partial class PS6 : Form
     {
+        AbstractSpreadsheet spreadsheet;
         public PS6()
         {
             InitializeComponent();
+            spreadsheet = new Spreadsheet(); //TODO
 
             this.spreadsheetPanel1.SelectionChanged += onCellClicked;
 
@@ -24,7 +26,17 @@ namespace SpreadsheetGUI
 
         public void onCellClicked(SpreadsheetPanel p)
         {
-            //Do stuff
+            int row, col;
+            p.GetSelection(out col, out row);
+            string cellName = GetCellName(col, row);
+            ContentsBox.Text = spreadsheet.GetCellContents(cellName).ToString();
+        }
+
+        private string GetCellName(int col, int row)
+        {
+            col += 65; //Translate to Unicode code
+            row += 1;
+            return (char)col + row.ToString();
         }
     }
 }
