@@ -38,5 +38,20 @@ namespace SpreadsheetGUI
             row += 1;
             return (char)col + row.ToString();
         }
+
+        private void WriteCellContents(SpreadsheetPanel p)
+        {
+            int row, col;
+            p.GetSelection(out col, out row);
+            string cellName = GetCellName(col, row);
+            spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+
+            p.SetValue(col, row, spreadsheet.GetCellValue(cellName).ToString());
+        }
+
+        private void EnterButton_Click(object sender, EventArgs e)
+        {
+            WriteCellContents(spreadsheetPanel1);
+        }
     }
 }

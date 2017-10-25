@@ -152,6 +152,7 @@
             this.EnterButton.TabIndex = 3;
             this.EnterButton.Text = "Enter";
             this.EnterButton.UseVisualStyleBackColor = true;
+            this.EnterButton.Click += new System.EventHandler(this.EnterButton_Click);
             // 
             // PS6
             // 
