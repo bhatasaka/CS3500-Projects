@@ -35,6 +35,8 @@ namespace SpreadsheetGUI
                 ContentsBox.Text = "=" + cellContents;
             else
                 ContentsBox.Text = cellContents.ToString();
+
+            ContentsBox.Focus();
         }
 
         private string GetCellName(int col, int row)
@@ -59,6 +61,18 @@ namespace SpreadsheetGUI
         private void EnterButton_Click(object sender, EventArgs e)
         {
             WriteCellContents(spreadsheetPanel1);
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Tell the application context to run the form on the same
+            // thread as the other forms.
+            PS6ApplicationContext.getAppContext().RunForm(new PS6());
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }
