@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SS;
 
 namespace SpreadsheetGUI
 {
@@ -15,6 +16,15 @@ namespace SpreadsheetGUI
         public PS6()
         {
             InitializeComponent();
+
+            this.spreadsheetPanel1.SelectionChanged += onCellClicked;
+
+            this.AcceptButton = EnterButton;
+        }
+
+        public void onCellClicked(SpreadsheetPanel p)
+        {
+            //Do stuff
         }
     }
 }
