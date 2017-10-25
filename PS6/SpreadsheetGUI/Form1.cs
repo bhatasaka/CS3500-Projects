@@ -31,10 +31,14 @@ namespace SpreadsheetGUI
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             object cellContents = spreadsheet.GetCellContents(cellName);
+            string cellValue;
             if (cellContents is Formula)
-                ContentsBox.Text = "=" + cellContents;
+                cellValue = "=" + cellContents;
             else
-                ContentsBox.Text = cellContents.ToString();
+                cellValue = cellContents.ToString();
+
+            ContentsBox.Text = cellValue;
+            cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
 
             ContentsBox.Focus();
         }
