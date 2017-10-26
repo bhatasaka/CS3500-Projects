@@ -18,14 +18,39 @@ namespace SpreadsheetGUI
         public PS6()
         {
             InitializeComponent();
-            spreadsheet = new Spreadsheet(); //TODO
+            spreadsheet = new Spreadsheet(isValid, s => s.ToUpper(), "PS6");
 
             this.spreadsheetPanel1.SelectionChanged += onCellClicked;
 
             this.AcceptButton = EnterButton;
         }
 
-        public void onCellClicked(SpreadsheetPanel p)
+        /// <summary>
+        /// isValid method to pass to the spreadsheet object to check variables names.
+        /// Only allows variables through that are the name of a cell in the spreadsheet.
+        /// (Letter followed by number - Ex. A99. No more than one letter, no number higher than 99)
+        /// </summary>
+        /// <param name="varName"></param>
+        /// <returns></returns>
+        private bool isValid(string varName)
+        {
+            int varLength = varName.Count();
+            int varNumber = 0;
+
+            //Checks for length and if the first char is a letter
+            if ((varLength == 2 || varLength == 3) && Char.IsLetter(varName[0]))
+            {
+                //Check that the following characters make a number
+                if (int.TryParse(varName.Substring(1), out varNumber))
+                {
+                    if (varNumber <= 99 && varNumber >= 0)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private void onCellClicked(SpreadsheetPanel p)
         {
             int row, col;
             p.GetSelection(out col, out row);
@@ -59,7 +84,6 @@ namespace SpreadsheetGUI
         {
             Close();
         }
-
 
         /// <summary>
         /// Generated.
