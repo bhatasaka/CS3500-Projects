@@ -56,13 +56,10 @@ namespace SpreadsheetGUI
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             object cellContents = spreadsheet.GetCellContents(cellName);
-            string cellValue;
             if (cellContents is Formula)
-                cellValue = "=" + cellContents;
-            else
-                cellValue = cellContents.ToString();
+                cellContents = "=" + cellContents;
 
-            ContentsBox.Text = cellValue;
+            ContentsBox.Text = cellContents.ToString();
             cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
 
             ContentsBox.Focus();
