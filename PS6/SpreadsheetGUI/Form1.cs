@@ -43,6 +43,35 @@ namespace SpreadsheetGUI
             ContentsBox.Focus();
         }
 
+        private void EnterButton_Click(object sender, EventArgs e)
+        {
+            WriteCellContents(spreadsheetPanel1);
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Tell the application context to run the form on the same
+            // thread as the other forms.
+            PS6ApplicationContext.getAppContext().RunForm(new PS6());
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+
+        /// <summary>
+        /// Generated.
+        /// Handles any closing event, including the X in the upper right hand side of the window
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void PS6_FormClosing_1(object sender, FormClosingEventArgs e)
+        {
+            CloseForm(e);
+        }
+
         private string GetCellName(int col, int row)
         {
             col += 65; //Translate to Unicode code
@@ -62,19 +91,7 @@ namespace SpreadsheetGUI
             p.SetValue(col, row, cellValue.ToString());
         }
 
-        private void EnterButton_Click(object sender, EventArgs e)
-        {
-            WriteCellContents(spreadsheetPanel1);
-        }
-
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // Tell the application context to run the form on the same
-            // thread as the other forms.
-            PS6ApplicationContext.getAppContext().RunForm(new PS6());
-        }
-
-        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CloseForm(FormClosingEventArgs closeEvent)
         {
             if (spreadsheet.Changed)
             {
@@ -82,9 +99,8 @@ namespace SpreadsheetGUI
                     MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
 
                 if (closeWithoutSavingResult.Equals(DialogResult.No))
-                    return;
+                    closeEvent.Cancel = true;
             }
-            Close();
         }
     }
 }
