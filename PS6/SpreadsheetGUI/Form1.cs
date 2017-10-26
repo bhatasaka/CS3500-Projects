@@ -76,6 +76,14 @@ namespace SpreadsheetGUI
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (spreadsheet.Changed)
+            {
+                DialogResult closeWithoutSavingResult = MessageBox.Show("Close without saving?", this.Name,
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+
+                if (closeWithoutSavingResult.Equals(DialogResult.No))
+                    return;
+            }
             Close();
         }
     }
