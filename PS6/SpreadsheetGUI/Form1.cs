@@ -100,16 +100,37 @@ namespace SpreadsheetGUI
             return (char)col + row.ToString();
         }
 
+        /// <summary>
+        /// Will set col and row to be equal to the correct numbers
+        /// corresponding to the cell name.
+        /// For example: A1 gets translated to col = 0, row = 0
+        /// Z99 gets translated to col = 25, row == 98
+        /// </summary>
+        /// <param name="cell"></param>
+        /// <param name="col"></param>
+        /// <param name="row"></param>
+        private void GetCellIndexes(string cell, out int col, out int row)
+        {
+            col = cell[0] - 65;
+            row = int.Parse(cell.Substring(1)) - 1;
+        }
+
         private void WriteCellContents(SpreadsheetPanel p)
         {
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
-            spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+            ISet<string> cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+            object cellValue;
 
-            object cellValue = spreadsheet.GetCellValue(cellName);
-
-            p.SetValue(col, row, cellValue.ToString());
+            // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
+            // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
+            foreach (string cell in cells)
+            {
+                cellValue = spreadsheet.GetCellValue(cell);
+                GetCellIndexes(cell, out col, out row);
+                p.SetValue(col, row, cellValue.ToString());
+            }
         }
 
         private void CloseForm(FormClosingEventArgs closeEvent)
