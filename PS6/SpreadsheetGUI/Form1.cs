@@ -132,12 +132,12 @@ namespace SpreadsheetGUI
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             ISet<string> cells;
-            cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
 
             try
             {
                 //Method that may throw the exception
                 cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+                cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
 
                 object cellValue;
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
