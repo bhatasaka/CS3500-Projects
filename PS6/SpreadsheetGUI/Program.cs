@@ -61,16 +61,14 @@ namespace SpreadsheetGUI
         [STAThread]
         static void Main(string[] args)
         {
-            //args[1] is the filename/path
-            if(args.Count() == 2)
-            {
-                //load the app with the file
-            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             PS6ApplicationContext appContext = PS6ApplicationContext.getAppContext();
-            appContext.RunForm(new PS6());
+            if(args.Count() == 2)
+                appContext.RunForm(new PS6(args[1]));
+            else
+                appContext.RunForm(new PS6());
             Application.Run(appContext);
         }
     }

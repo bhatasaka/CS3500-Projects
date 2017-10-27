@@ -28,6 +28,16 @@ namespace SpreadsheetGUI
             this.AcceptButton = EnterButton;
             saveFileName = null;
         }
+        public PS6(string filePath)
+        {
+            InitializeComponent();
+            spreadsheet = new Spreadsheet(filePath, isValid, s => s.ToUpper(), "PS6");
+
+            this.spreadsheetPanel1.SelectionChanged += onCellClicked;
+
+            this.AcceptButton = EnterButton;
+            saveFileName = filePath;
+        }
 
         /// <summary>
         /// isValid method to pass to the spreadsheet object to check variables names.
