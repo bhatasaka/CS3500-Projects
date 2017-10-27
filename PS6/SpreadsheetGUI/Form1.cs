@@ -16,8 +16,8 @@ namespace SpreadsheetGUI
 {
     public partial class PS6 : Form
     {
-        AbstractSpreadsheet spreadsheet;
-        string saveFileName;
+        private AbstractSpreadsheet spreadsheet;
+        private string saveFileName;
         public PS6()
         {
             InitializeComponent();
@@ -119,12 +119,21 @@ namespace SpreadsheetGUI
             row = int.Parse(cell.Substring(1)) - 1;
         }
 
+        /// <summary>
+        /// Will add a cell and add its value to the cell value for the
+        /// spreadsheet panel.
+        /// 
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         private void WriteCellContents(SpreadsheetPanel p)
         {
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             ISet<string> cells;
+            cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+
             try
             {
                 //Method that may throw the exception
@@ -165,7 +174,6 @@ namespace SpreadsheetGUI
                     closeEvent.Cancel = true;
                 else if (saveResult.Equals(DialogResult.Yes))
                     save();
-
             }
         }
 
@@ -173,11 +181,12 @@ namespace SpreadsheetGUI
         {
             if (spreadsheet.Changed)
             {
-                DialogResult loadWithoutSavingResult = MessageBox.Show("Are you sure you want to" +
-                    " load a spreadsheet? This action will overwrite any unsaved changes.",
-                    this.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                DialogResult saveBeforeLoadingResult = MessageBox.Show("Save spreadsheet before loading?",
+                    this.Name, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation);
 
-                if (loadWithoutSavingResult.Equals(DialogResult.No))
+                if (saveBeforeLoadingResult.Equals(DialogResult.Yes))
+                    save();
+                else if (saveBeforeLoadingResult.Equals(DialogResult.Cancel))
                     return;
             }
 
@@ -315,14 +324,14 @@ namespace SpreadsheetGUI
                 }
                 else
                 {
-                    DialogResult errorOpeningFileResult = MessageBox.Show("The selected file was" +
+                    DialogResult errorOpeningFileResult = MessageBox.Show("The selected file was " +
                         "not a .sprd file. Please try again.");
                     return;
                 }
             }
             else
             {
-                DialogResult errorOpeningFileResult = MessageBox.Show("There was an error" +
+                DialogResult errorOpeningFileResult = MessageBox.Show("There was an error " +
                     "loading your file. Please try again.");
                 return;
             }
