@@ -120,16 +120,33 @@ namespace SpreadsheetGUI
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
-            ISet<string> cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
-            object cellValue;
-
-            // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
-            // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
-            foreach (string cell in cells)
+            ISet<string> cells;
+            try
             {
-                cellValue = spreadsheet.GetCellValue(cell);
-                GetCellIndexes(cell, out col, out row);
-                p.SetValue(col, row, cellValue.ToString());
+                //Method that may throw the exception
+                cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+
+                object cellValue;
+                // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
+                // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
+                foreach (string cell in cells)
+                {
+                    cellValue = spreadsheet.GetCellValue(cell);
+                    GetCellIndexes(cell, out col, out row);
+                    p.SetValue(col, row, cellValue.ToString());
+                }
+            }
+            catch(CircularException)
+            {
+                MessageBox.Show("There are one or more circular references where a cell refers to its own " +
+                    "cell either directly or indirectly. To fix this, change the references or remove them.",
+                    this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            catch (FormulaFormatException)
+            {
+                MessageBox.Show("An incorrect reference to another cell was found. Check the cell name. " +
+                    "Only the cells available in this spreadsheet can be referenced.",
+                    this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
