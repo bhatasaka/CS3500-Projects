@@ -161,5 +161,19 @@ namespace SpreadsheetGUI
                     closeEvent.Cancel = true;
             }
         }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Spreadsheet Files (*.sprd)|*.sprd|All files (*.*)|*.*";
+            save.FilterIndex = 1;
+            save.RestoreDirectory = true;
+            save.OverwritePrompt = true;
+
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                spreadsheet.Save(save.FileName);
+            }
+        }
     }
 }
