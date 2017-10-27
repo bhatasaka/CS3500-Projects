@@ -17,6 +17,7 @@ namespace SpreadsheetGUI
     public partial class PS6 : Form
     {
         AbstractSpreadsheet spreadsheet;
+        string saveFileName;
         public PS6()
         {
             InitializeComponent();
@@ -25,6 +26,7 @@ namespace SpreadsheetGUI
             this.spreadsheetPanel1.SelectionChanged += onCellClicked;
 
             this.AcceptButton = EnterButton;
+            saveFileName = null;
         }
 
         /// <summary>
@@ -156,11 +158,14 @@ namespace SpreadsheetGUI
         {
             if (spreadsheet.Changed)
             {
-                DialogResult closeWithoutSavingResult = MessageBox.Show("Close without saving?", this.Name,
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                DialogResult saveResult = MessageBox.Show("Save before closing?", this.Name,
+                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation);
 
-                if (closeWithoutSavingResult.Equals(DialogResult.No))
+                if (saveResult.Equals(DialogResult.Cancel))
                     closeEvent.Cancel = true;
+                else if (saveResult.Equals(DialogResult.Yes))
+                    save();
+
             }
         }
 
@@ -192,6 +197,7 @@ namespace SpreadsheetGUI
                 {
                     try
                     {
+
                         XmlReader reader = XmlReader.Create(open.FileName);
                         bool enteredCell = false;
                         bool enteredName = false;
@@ -356,6 +362,19 @@ namespace SpreadsheetGUI
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            save();
+        }
+
+        private void save()
+        {
+            if(saveFileName == null)
+                saveAs();
+            else
+                spreadsheet.Save(saveFileName);
+        }
+
+        private void saveAs()
+        {
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Spreadsheet Files (*.sprd)|*.sprd|All files (*.*)|*.*";
             save.FilterIndex = 1;
@@ -364,8 +383,14 @@ namespace SpreadsheetGUI
 
             if (save.ShowDialog() == DialogResult.OK)
             {
-                spreadsheet.Save(save.FileName);
+                saveFileName = save.FileName;
+                spreadsheet.Save(saveFileName);
             }
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveAs();
         }
     }
 }
