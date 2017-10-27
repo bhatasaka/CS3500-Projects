@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SS;
 using SpreadsheetUtilities;
+using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace SpreadsheetGUI
 {
@@ -160,6 +162,196 @@ namespace SpreadsheetGUI
                 if (closeWithoutSavingResult.Equals(DialogResult.No))
                     closeEvent.Cancel = true;
             }
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (spreadsheet.Changed)
+            {
+                DialogResult loadWithoutSavingResult = MessageBox.Show("Are you sure you want to" +
+                    " load a spreadsheet? This action will overwrite any unsaved changes.",
+                    this.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+
+                if (loadWithoutSavingResult.Equals(DialogResult.No))
+                    return;
+            }
+
+            OpenFileDialog open = new OpenFileDialog();
+            open.InitialDirectory = "C:\\";
+            open.Filter = "Spreadsheet Files (*.spdr)|*.spdr|All Files (*.*)|*.*";
+            open.FilterIndex = 1;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                //Erase everything currently on the spreadsheet
+                spreadsheet = new Spreadsheet(isValid, s => s.ToUpper(), "PS6");
+                spreadsheetPanel1.Clear();
+                //Attempt to load new data into the spreadsheet
+                if (open.FileName.Substring(open.FileName.Length - 5) == ".sprd")
+                {
+                    try
+                    {
+                        XmlReader reader = XmlReader.Create(open.FileName);
+                        bool enteredCell = false;
+                        bool enteredName = false;
+                        bool enteredContents = false;
+                        string currentCell = "";
+                        string currentContents = "";
+                        while (reader.Read())
+                        {
+                            switch(reader.NodeType)
+                            {
+                                case XmlNodeType.Element:
+                                    if (reader.Name == "xml") break;
+                                    else if (reader.Name == "spreadsheet")
+                                    {
+                                        if (reader.GetAttribute("version") != "PS6")
+                                        {
+                                            throw new SpreadsheetReadWriteException("The opened file was" +
+                                        "the correct format, but was not version PS6. Please load a " +
+                                        "spreadsheet of the correct version.");
+                                        }
+                                        break;
+                                    }
+                                    else if (reader.Name == "cell")
+                                    {
+                                        if (enteredCell == true)
+                                            throw new SpreadsheetReadWriteException("Found a cell within" +
+                                                "a cell. Please load a valid spreadsheet.");
+                                        else enteredCell = true;
+                                        break;
+                                    }
+                                    else if (reader.Name == "name")
+                                    {
+                                        if (enteredName == true)
+                                            throw new SpreadsheetReadWriteException("Found two" +
+                                                "names within a cell. Please load a valid spreadsheet.");
+                                        else enteredName = true;
+                                        break;
+                                    }
+                                    else if (reader.Name == "contents")
+                                    {
+                                        if (enteredContents == true)
+                                            throw new SpreadsheetReadWriteException("Found two" +
+                                                "contents within a cell. Please load a valid spreadsheet.");
+                                        else enteredContents = true;
+                                        break;
+                                    }
+                                    else throw new SpreadsheetReadWriteException("Found an unfamiliar" +
+                                        "element type in spreadsheet file. File is corrupted.");
+                                case XmlNodeType.Text:
+                                    if (enteredName == true)
+                                    {
+                                        currentCell = reader.Value;
+                                        break;
+                                    }
+                                    else if (enteredContents == true)
+                                    {
+                                        currentContents = reader.Value;
+                                        break;
+                                    }
+                                    else break;
+                                case XmlNodeType.EndElement:
+                                    if (reader.Name == "spreadsheet")
+                                        return;
+                                    else if (reader.Name == "cell")
+                                    {
+                                        if (enteredCell == false)
+                                            throw new SpreadsheetReadWriteException("Found a closing" +
+                                                "cell tag without an open tag. Please load a valid" +
+                                                "spreadsheet.");
+                                        else if (currentCell == "" || currentContents == "")
+                                            throw new SpreadsheetReadWriteException("Found a cell" +
+                                                "with either no name or no contents. Please load a" +
+                                                "valid spreadsheet.");
+                                        else
+                                        {
+                                            WriteCellContents(currentCell, currentContents);
+                                            enteredCell = false;
+                                            break;
+                                        }
+                                    }
+                                    else if (reader.Name == "name")
+                                        if (enteredName == false)
+                                            throw new SpreadsheetReadWriteException("Found a closing" +
+                                                "name tag without an open tag. Please load a valid" +
+                                                "spreadsheet.");
+                                        else
+                                        {
+                                            enteredName = false;
+                                            break;
+                                        }
+                                    else if (reader.Name == "contents")
+                                        if (enteredContents == false)
+                                            throw new SpreadsheetReadWriteException("Found a closing" +
+                                                "contents tag without an open tag. Please load a valid" +
+                                                "spreadsheet.");
+                                        else
+                                        {
+                                            enteredContents = false;
+                                            break;
+                                        }
+                                    else break;
+                            }
+                        }
+                    }
+                    catch (SpreadsheetReadWriteException readwriteExc)
+                    {
+                        DialogResult errorOpeningFileResult = MessageBox.Show(readwriteExc.Message);
+                        return;
+                    }
+                    catch (XmlException xmlexc)
+                    {
+                        DialogResult errorOpeningFileResult = MessageBox.Show(xmlexc.Message);
+                        return;
+                    }
+                }
+                else
+                {
+                    DialogResult errorOpeningFileResult = MessageBox.Show("The selected file was" +
+                        "not a .sprd file. Please try again.");
+                    return;
+                }
+            }
+            else
+            {
+                DialogResult errorOpeningFileResult = MessageBox.Show("There was an error" +
+                    "loading your file. Please try again.");
+                return;
+            }
+        }
+
+        private void WriteCellContents(string cellName, string cellValue)
+        {
+            int row = ParseRowFromCellName(cellName);
+            int col = ParseColFromCellName(cellName);
+            ISet<string> cells;
+
+            //Method that may throw the exception
+            cells = spreadsheet.SetContentsOfCell(cellName, cellValue);
+
+            object cellValueObject;
+            // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
+            // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
+            foreach (string cell in cells)
+            {
+                cellValueObject = spreadsheet.GetCellValue(cell);
+                GetCellIndexes(cell, out col, out row);
+                spreadsheetPanel1.SetValue(col, row, cellValueObject.ToString());
+            }
+        }
+
+        private int ParseColFromCellName(string cellName)
+        {
+            char letter = Regex.Match(cellName.ToUpper(), "[A-Z]").Value[0];
+            int col = letter - 65;
+            return col;
+        }
+
+        private int ParseRowFromCellName(string cellName)
+        {
+            return Convert.ToInt32(Regex.Match(cellName, "[0-9]+").Value) - 1;
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
