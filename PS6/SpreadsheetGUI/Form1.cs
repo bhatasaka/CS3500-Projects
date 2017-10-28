@@ -74,7 +74,7 @@ namespace SpreadsheetGUI
                 cellContents = "=" + cellContents;
 
             ContentsBox.Text = cellContents.ToString();
-            cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+            cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
 
             ContentsBox.Focus();
         }
@@ -147,7 +147,7 @@ namespace SpreadsheetGUI
             {
                 //Method that may throw the exception
                 cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
-                cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+                cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
 
                 object cellValue;
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
