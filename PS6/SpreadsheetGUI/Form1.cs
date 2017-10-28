@@ -11,6 +11,7 @@ using SS;
 using SpreadsheetUtilities;
 using System.Xml;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SpreadsheetGUI
 {
@@ -81,7 +82,9 @@ namespace SpreadsheetGUI
 
         private void EnterButton_Click(object sender, EventArgs e)
         {
-            WriteCellContents(spreadsheetPanel1);
+            // Disabling the enter button prevents race conditions from occuring
+            EnterButton.Enabled = false;
+            backgroundWorker1.RunWorkerAsync();
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -138,16 +141,21 @@ namespace SpreadsheetGUI
         /// <returns></returns>
         private void WriteCellContents(SpreadsheetPanel p)
         {
+            string contents = ContentsBox.Text;
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             ISet<string> cells;
+            MethodInvoker setValueLabel = new MethodInvoker(() =>
+               {
+                   cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+               });
 
             try
             {
                 //Method that may throw the exception
-                cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
-                cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+                cells = spreadsheet.SetContentsOfCell(cellName, contents);
+                this.Invoke(setValueLabel);
 
                 object cellValue;
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
@@ -171,6 +179,7 @@ namespace SpreadsheetGUI
                     "Only the cells available in this spreadsheet can be referenced.",
                     this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+
         }
 
         private void CloseForm(FormClosingEventArgs closeEvent)
@@ -410,6 +419,16 @@ namespace SpreadsheetGUI
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveAs();
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            WriteCellContents(spreadsheetPanel1);
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            EnterButton.Enabled = true;
         }
     }
 }
