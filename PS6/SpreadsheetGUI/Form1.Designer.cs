@@ -44,8 +44,11 @@
             this.cellValueTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.ContentsBox = new System.Windows.Forms.ToolStripTextBox();
             this.EnterButton = new System.Windows.Forms.Button();
+            this.racingStripe = new System.Windows.Forms.PictureBox();
+            this.racingStripeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.racingStripe)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -113,7 +116,8 @@
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem,
-            this.instructionsToolStripMenuItem});
+            this.instructionsToolStripMenuItem,
+            this.racingStripeToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(53, 24);
             this.helpToolStripMenuItem.Text = "Help";
@@ -183,11 +187,33 @@
             this.EnterButton.UseVisualStyleBackColor = true;
             this.EnterButton.Click += new System.EventHandler(this.EnterButton_Click);
             // 
+            // racingStripe
+            // 
+            this.racingStripe.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.racingStripe.BackColor = System.Drawing.Color.Red;
+            this.racingStripe.Location = new System.Drawing.Point(275, 0);
+            this.racingStripe.MinimumSize = new System.Drawing.Size(50, 0);
+            this.racingStripe.Name = "racingStripe";
+            this.racingStripe.Size = new System.Drawing.Size(100, 653);
+            this.racingStripe.TabIndex = 4;
+            this.racingStripe.TabStop = false;
+            this.racingStripe.Visible = false;
+            // 
+            // racingStripeToolStripMenuItem
+            // 
+            this.racingStripeToolStripMenuItem.Name = "racingStripeToolStripMenuItem";
+            this.racingStripeToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.racingStripeToolStripMenuItem.Text = "Racing Stripe!";
+            this.racingStripeToolStripMenuItem.Click += new System.EventHandler(this.racingStripeToolStripMenuItem_Click);
+            // 
             // PS6
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(682, 653);
+            this.Controls.Add(this.racingStripe);
             this.Controls.Add(this.EnterButton);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.spreadsheetPanel1);
@@ -201,6 +227,7 @@
             this.menuStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.racingStripe)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -224,6 +251,8 @@
         private System.Windows.Forms.ToolStripLabel cellLabel;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripTextBox cellValueTextBox;
+        private System.Windows.Forms.PictureBox racingStripe;
+        private System.Windows.Forms.ToolStripMenuItem racingStripeToolStripMenuItem;
     }
 }
 

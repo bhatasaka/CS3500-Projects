@@ -494,5 +494,33 @@ namespace SpreadsheetGUI
                 "type an equals sign \"=\" at the beginning of it. This spreadsheet can currently" +
                 "add, subtract, multiply, and divide cells, and knows how to use parentheses too.");
         }
+
+        /// <summary>
+        /// Vrooooomm!!!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void racingStripeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleRacingStripe();
+        }
+
+        /// <summary>
+        /// Helper method that toggles the racing stripe on or off.
+        /// </summary>
+        private void toggleRacingStripe()
+        {
+            if (racingStripe.Visible == true)
+            {
+                racingStripeToolStripMenuItem.Checked = false;
+                racingStripe.Visible = false;
+            }
+            else
+            {
+                racingStripeToolStripMenuItem.Checked = true;
+                racingStripe.Visible = true;
+            }
+                
+        }
     }
 }
