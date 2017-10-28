@@ -41,9 +41,9 @@
             this.spreadsheetPanel1 = new SS.SpreadsheetPanel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.cellLabel = new System.Windows.Forms.ToolStripLabel();
+            this.cellValueTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.ContentsBox = new System.Windows.Forms.ToolStripTextBox();
             this.EnterButton = new System.Windows.Forms.Button();
-            this.cellValueTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -123,12 +123,14 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // instructionsToolStripMenuItem
             // 
             this.instructionsToolStripMenuItem.Name = "instructionsToolStripMenuItem";
             this.instructionsToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.instructionsToolStripMenuItem.Text = "Instructions";
+            this.instructionsToolStripMenuItem.Click += new System.EventHandler(this.instructionsToolStripMenuItem_Click);
             // 
             // spreadsheetPanel1
             // 
@@ -159,6 +161,12 @@
             this.cellLabel.Size = new System.Drawing.Size(27, 24);
             this.cellLabel.Text = "A1";
             // 
+            // cellValueTextBox
+            // 
+            this.cellValueTextBox.Enabled = false;
+            this.cellValueTextBox.Name = "cellValueTextBox";
+            this.cellValueTextBox.Size = new System.Drawing.Size(100, 27);
+            // 
             // ContentsBox
             // 
             this.ContentsBox.Name = "ContentsBox";
@@ -174,12 +182,6 @@
             this.EnterButton.Text = "Enter";
             this.EnterButton.UseVisualStyleBackColor = true;
             this.EnterButton.Click += new System.EventHandler(this.EnterButton_Click);
-            // 
-            // cellValueTextBox
-            // 
-            this.cellValueTextBox.Enabled = false;
-            this.cellValueTextBox.Name = "cellValueTextBox";
-            this.cellValueTextBox.Size = new System.Drawing.Size(100, 27);
             // 
             // PS6
             // 
