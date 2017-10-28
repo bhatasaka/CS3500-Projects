@@ -11,6 +11,7 @@ using SS;
 using SpreadsheetUtilities;
 using System.Xml;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SpreadsheetGUI
 {
@@ -100,7 +101,8 @@ namespace SpreadsheetGUI
         /// <param name="e"></param>
         private void EnterButton_Click(object sender, EventArgs e)
         {
-            WriteCellContents(spreadsheetPanel1);
+            EnterButton.Enabled = false;
+            backgroundWorker1.RunWorkerAsync();
         }
 
         /// <summary>
@@ -173,16 +175,21 @@ namespace SpreadsheetGUI
         /// <returns></returns>
         private void WriteCellContents(SpreadsheetPanel p)
         {
+            string contents = ContentsBox.Text;
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             ISet<string> cells;
+            MethodInvoker setValueTextBox = new MethodInvoker(() => 
+                {
+                    cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
+                });
 
             try
             {
                 //Method that may throw the exception
-                cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
-                cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
+                cells = spreadsheet.SetContentsOfCell(cellName, contents);
+                this.Invoke(setValueTextBox);
 
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
                 // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
@@ -201,6 +208,7 @@ namespace SpreadsheetGUI
                     "Only the cells available in this spreadsheet can be referenced.",
                     this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+
         }
 
         private void displayCellValues(IEnumerable<string> cells, SpreadsheetPanel panel)
@@ -539,6 +547,32 @@ namespace SpreadsheetGUI
             {
                 racingStripeToolStripMenuItem.Checked = true;
                 racingStripe.Visible = true;
+            }
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            WriteCellContents(spreadsheetPanel1);
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            EnterButton.Enabled = true;
+        }
+
+        private class CellContentsWriter
+        {
+            private String cellContents;
+            private SpreadsheetPanel panel;
+            private Spreadsheet spreadsheet;
+            private PS6 ps6;
+
+            public CellContentsWriter(string contents, SpreadsheetPanel panel, Spreadsheet spreadsheet, PS6 ps6)
+            {
+                cellContents = contents;
+                this.panel = panel;
+                this.spreadsheet = spreadsheet;
+                this.ps6 = ps6;
             }
 
         }
