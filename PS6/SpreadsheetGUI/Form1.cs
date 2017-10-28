@@ -202,7 +202,7 @@ namespace SpreadsheetGUI
 
             OpenFileDialog open = new OpenFileDialog();
             open.InitialDirectory = "C:\\";
-            open.Filter = "Spreadsheet Files (*.spdr)|*.spdr|All Files (*.*)|*.*";
+            open.Filter = "Spreadsheet Files (*.sprd)|*.sprd|All Files (*.*)|*.*";
             open.FilterIndex = 1;
             open.RestoreDirectory = true;
 
