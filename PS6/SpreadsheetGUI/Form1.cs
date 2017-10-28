@@ -51,7 +51,7 @@ namespace SpreadsheetGUI
             this.AcceptButton = EnterButton;
             saveFileName = filePath;
 
-            displayCellValues(spreadsheet.GetNamesOfAllNonemptyCells(), spreadsheetPanel1);
+            DisplayCellValues(spreadsheet.GetNamesOfAllNonemptyCells(), spreadsheetPanel1);
         }
 
         /// <summary>
@@ -79,6 +79,10 @@ namespace SpreadsheetGUI
             return false;
         }
 
+        /// <summary>
+        /// Event method called when a cell is clicked on the spreadsheet panel object
+        /// </summary>
+        /// <param name="p"></param>
         private void onCellClicked(SpreadsheetPanel p)
         {
             int row, col;
@@ -193,7 +197,7 @@ namespace SpreadsheetGUI
 
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
                 // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
-                displayCellValues(cells, p);
+                DisplayCellValues(cells, p);
 
             }
             catch (CircularException)
@@ -211,7 +215,12 @@ namespace SpreadsheetGUI
 
         }
 
-        private void displayCellValues(IEnumerable<string> cells, SpreadsheetPanel panel)
+        /// <summary>
+        /// Updates all the cells in given IEnumerable to show their values on the panel
+        /// </summary>
+        /// <param name="cells"></param>
+        /// <param name="panel"></param>
+        private void DisplayCellValues(IEnumerable<string> cells, SpreadsheetPanel panel)
         {
             object cellValue;
             int col, row;
@@ -506,6 +515,11 @@ namespace SpreadsheetGUI
             saveAs();
         }
 
+        /// <summary>
+        /// About box
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult aboutDialog = MessageBox.Show("The PS6 spreadsheet viewer is an assignment" +
@@ -515,6 +529,11 @@ namespace SpreadsheetGUI
                 "interpret and calculate formulas.");
         }
 
+        /// <summary>
+        /// Instructions box
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void instructionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult instructionsDialog = MessageBox.Show("In order to use this spreadsheet, " +
@@ -560,21 +579,5 @@ namespace SpreadsheetGUI
             EnterButton.Enabled = true;
         }
 
-        private class CellContentsWriter
-        {
-            private String cellContents;
-            private SpreadsheetPanel panel;
-            private Spreadsheet spreadsheet;
-            private PS6 ps6;
-
-            public CellContentsWriter(string contents, SpreadsheetPanel panel, Spreadsheet spreadsheet, PS6 ps6)
-            {
-                cellContents = contents;
-                this.panel = panel;
-                this.spreadsheet = spreadsheet;
-                this.ps6 = ps6;
-            }
-
-        }
     }
 }
