@@ -11,7 +11,6 @@ using SS;
 using SpreadsheetUtilities;
 using System.Xml;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace SpreadsheetGUI
 {
@@ -87,9 +86,7 @@ namespace SpreadsheetGUI
         /// <param name="e"></param>
         private void EnterButton_Click(object sender, EventArgs e)
         {
-            // Disabling the enter button prevents race conditions from occuring
-            EnterButton.Enabled = false;
-            backgroundWorker1.RunWorkerAsync();
+            WriteCellContents(spreadsheetPanel1);
         }
 
         /// <summary>
@@ -162,21 +159,16 @@ namespace SpreadsheetGUI
         /// <returns></returns>
         private void WriteCellContents(SpreadsheetPanel p)
         {
-            string contents = ContentsBox.Text;
             int row, col;
             p.GetSelection(out col, out row);
             string cellName = GetCellName(col, row);
             ISet<string> cells;
-            MethodInvoker setValueLabel = new MethodInvoker(() =>
-               {
-                   cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
-               });
 
             try
             {
                 //Method that may throw the exception
-                cells = spreadsheet.SetContentsOfCell(cellName, contents);
-                this.Invoke(setValueLabel);
+                cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
+                cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
 
                 object cellValue;
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
@@ -188,7 +180,7 @@ namespace SpreadsheetGUI
                     p.SetValue(col, row, cellValue.ToString());
                 }
             }
-            catch(CircularException)
+            catch (CircularException)
             {
                 MessageBox.Show("There are one or more circular references where a cell refers to its own " +
                     "cell either directly or indirectly. To fix this, change the references or remove them.",
@@ -200,7 +192,6 @@ namespace SpreadsheetGUI
                     "Only the cells available in this spreadsheet can be referenced.",
                     this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-
         }
 
         /// <summary>
@@ -264,7 +255,7 @@ namespace SpreadsheetGUI
                         string currentContents = "";
                         while (reader.Read())
                         {
-                            switch(reader.NodeType)
+                            switch (reader.NodeType)
                             {
                                 case XmlNodeType.Element:
                                     if (reader.Name == "xml") break;
@@ -453,7 +444,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private void save()
         {
-            if(saveFileName == null)
+            if (saveFileName == null)
                 saveAs();
             else
                 spreadsheet.Save(saveFileName);
@@ -485,6 +476,51 @@ namespace SpreadsheetGUI
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveAs();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult aboutDialog = MessageBox.Show("The PS6 spreadsheet viewer is an assignment" +
+                "for CS3500 at the University of Utah's College of Engineering. It was made by " +
+                "Bryan Hatasaka (u1028471) and Marcus Hahne (u1046964) and finished on October 27, " +
+                "2017. It has the full functionality of a spreadsheet, complete with the ability to" +
+                "interpret and calculate formulas.");
+        }
+
+        private void instructionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult instructionsDialog = MessageBox.Show("In order to use this spreadsheet, " +
+                "click on a cell and begin typing. If you want to fill out cells with formulas, " +
+                "type an equals sign \"=\" at the beginning of it. This spreadsheet can currently" +
+                "add, subtract, multiply, and divide cells, and knows how to use parentheses too.");
+        }
+
+        /// <summary>
+        /// Vrooooomm!!!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void racingStripeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleRacingStripe();
+        }
+
+        /// <summary>
+        /// Helper method that toggles the racing stripe on or off.
+        /// </summary>
+        private void toggleRacingStripe()
+        {
+            if (racingStripe.Visible == true)
+            {
+                racingStripeToolStripMenuItem.Checked = false;
+                racingStripe.Visible = false;
+            }
+            else
+            {
+                racingStripeToolStripMenuItem.Checked = true;
+                racingStripe.Visible = true;
+            }
+
         }
     }
 }

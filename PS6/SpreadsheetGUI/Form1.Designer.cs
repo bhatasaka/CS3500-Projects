@@ -46,7 +46,6 @@
             this.EnterButton = new System.Windows.Forms.Button();
             this.racingStripe = new System.Windows.Forms.PictureBox();
             this.racingStripeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.racingStripe)).BeginInit();
@@ -139,8 +138,8 @@
             // 
             // spreadsheetPanel1
             // 
-            this.spreadsheetPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.spreadsheetPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.spreadsheetPanel1.Location = new System.Drawing.Point(0, 58);
             this.spreadsheetPanel1.Name = "spreadsheetPanel1";
@@ -190,8 +189,8 @@
             // 
             // racingStripe
             // 
-            this.racingStripe.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.racingStripe.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.racingStripe.BackColor = System.Drawing.Color.Red;
             this.racingStripe.Location = new System.Drawing.Point(275, 0);
@@ -208,8 +207,6 @@
             this.racingStripeToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.racingStripeToolStripMenuItem.Text = "Racing Stripe!";
             this.racingStripeToolStripMenuItem.Click += new System.EventHandler(this.racingStripeToolStripMenuItem_Click);
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // PS6
             // 
@@ -256,7 +253,6 @@
         private System.Windows.Forms.ToolStripTextBox cellValueTextBox;
         private System.Windows.Forms.PictureBox racingStripe;
         private System.Windows.Forms.ToolStripMenuItem racingStripeToolStripMenuItem;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 
