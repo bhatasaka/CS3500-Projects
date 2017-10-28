@@ -253,6 +253,7 @@
         private System.Windows.Forms.ToolStripTextBox cellValueTextBox;
         private System.Windows.Forms.PictureBox racingStripe;
         private System.Windows.Forms.ToolStripMenuItem racingStripeToolStripMenuItem;
+
     }
 }
 
