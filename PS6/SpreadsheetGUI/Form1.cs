@@ -75,11 +75,16 @@ namespace SpreadsheetGUI
                 cellContents = "=" + cellContents;
 
             ContentsBox.Text = cellContents.ToString();
-            cellValueLabel.Text = spreadsheet.GetCellValue(cellName).ToString();
+            cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
 
             ContentsBox.Focus();
         }
 
+        /// <summary>
+        /// Called when the user hits the Enter key
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EnterButton_Click(object sender, EventArgs e)
         {
             // Disabling the enter button prevents race conditions from occuring
@@ -87,6 +92,11 @@ namespace SpreadsheetGUI
             backgroundWorker1.RunWorkerAsync();
         }
 
+        /// <summary>
+        /// Called when the user clicks "New". Begins a new window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Tell the application context to run the form on the same
@@ -94,6 +104,11 @@ namespace SpreadsheetGUI
             PS6ApplicationContext.getAppContext().RunForm(new PS6());
         }
 
+        /// <summary>
+        /// Called when the user clicks "Close". Closes the current window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
@@ -110,6 +125,12 @@ namespace SpreadsheetGUI
             CloseForm(e);
         }
 
+        /// <summary>
+        /// A helper method that gets a cell name from an inputted column and row.
+        /// </summary>
+        /// <param name="col"></param>
+        /// <param name="row"></param>
+        /// <returns>The cell name as a string</returns>
         private string GetCellName(int col, int row)
         {
             col += 65; //Translate to Unicode code
@@ -182,6 +203,10 @@ namespace SpreadsheetGUI
 
         }
 
+        /// <summary>
+        /// Closes the current spreadsheet, prompting the user for a save as necessary.
+        /// </summary>
+        /// <param name="closeEvent"></param>
         private void CloseForm(FormClosingEventArgs closeEvent)
         {
             if (spreadsheet.Changed)
@@ -196,6 +221,11 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Opens a new spreadsheet from a .sprd file and loads it into the spreadsheet panel
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (spreadsheet.Changed)
@@ -356,14 +386,21 @@ namespace SpreadsheetGUI
             }
         }
 
-        private void WriteCellContents(string cellName, string cellValue)
+        /// <summary>
+        /// This is a method for use in the openToolStripMenuItem_Click method, which loads 
+        /// a spreadsheet from a file. Its function is to write cell contents both in the GUI
+        /// and in the spreadsheet backing store.
+        /// </summary>
+        /// <param name="cellName">Name of the cell which will receive the data</param>
+        /// <param name="cellData">String representation of data in the cell</param>
+        private void WriteCellContents(string cellName, string cellData)
         {
             int row = ParseRowFromCellName(cellName);
             int col = ParseColFromCellName(cellName);
             ISet<string> cells;
 
             //Method that may throw the exception
-            cells = spreadsheet.SetContentsOfCell(cellName, cellValue);
+            cells = spreadsheet.SetContentsOfCell(cellName, cellData);
 
             object cellValueObject;
             // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
@@ -376,6 +413,12 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Takes in a full cell name and translates it to the column number for use in a
+        /// spreadsheet panel.
+        /// </summary>
+        /// <param name="cellName"></param>
+        /// <returns></returns>
         private int ParseColFromCellName(string cellName)
         {
             char letter = Regex.Match(cellName.ToUpper(), "[A-Z]").Value[0];
@@ -383,16 +426,31 @@ namespace SpreadsheetGUI
             return col;
         }
 
+        /// <summary>
+        /// Takes in a full cell name and translates it to the row number for use in a spreadsheet
+        /// panel.
+        /// </summary>
+        /// <param name="cellName"></param>
+        /// <returns></returns>
         private int ParseRowFromCellName(string cellName)
         {
             return Convert.ToInt32(Regex.Match(cellName, "[0-9]+").Value) - 1;
         }
 
+        /// <summary>
+        /// Method called when the "Save" button is clicked. This method differentiates between
+        /// "Save" and "Save As" functionality
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             save();
         }
 
+        /// <summary>
+        /// "Save" functionality for use in the saveToolStripMenuItem_Click method
+        /// </summary>
         private void save()
         {
             if(saveFileName == null)
@@ -401,6 +459,9 @@ namespace SpreadsheetGUI
                 spreadsheet.Save(saveFileName);
         }
 
+        /// <summary>
+        /// "Save As" functionality for use in the saveAsToolStripMenuItem_Click method
+        /// </summary>
         private void saveAs()
         {
             SaveFileDialog save = new SaveFileDialog();
@@ -416,19 +477,14 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Called when the "Save As" button is clicked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveAs();
-        }
-
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            WriteCellContents(spreadsheetPanel1);
-        }
-
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            EnterButton.Enabled = true;
         }
     }
 }
