@@ -503,7 +503,7 @@ namespace SpreadsheetGUI
             DialogResult aboutDialog = MessageBox.Show("The PS6 spreadsheet viewer is an assignment" +
                 "for CS3500 at the University of Utah's College of Engineering. It was made by " +
                 "Bryan Hatasaka (u1028471) and Marcus Hahne (u1046964) and finished on October 27, " +
-                "2017. It has the full functionality of a spreadsheet, complete with the ability to" +
+                "2017. It has the full functionality of a spreadsheet, complete with the ability to " +
                 "interpret and calculate formulas.");
         }
 
@@ -511,7 +511,7 @@ namespace SpreadsheetGUI
         {
             DialogResult instructionsDialog = MessageBox.Show("In order to use this spreadsheet, " +
                 "click on a cell and begin typing. If you want to fill out cells with formulas, " +
-                "type an equals sign \"=\" at the beginning of it. This spreadsheet can currently" +
+                "type an equals sign \"=\" at the beginning of it. This spreadsheet can currently " +
                 "add, subtract, multiply, and divide cells, and knows how to use parentheses too.");
         }
 
