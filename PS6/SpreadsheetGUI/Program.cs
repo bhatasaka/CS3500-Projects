@@ -65,8 +65,8 @@ namespace SpreadsheetGUI
             Application.SetCompatibleTextRenderingDefault(false);
 
             PS6ApplicationContext appContext = PS6ApplicationContext.getAppContext();
-            if(args.Count() == 2)
-                appContext.RunForm(new PS6(args[1]));
+            if (args.Count() > 0)
+                appContext.RunForm(new PS6(args[0]));
             else
                 appContext.RunForm(new PS6());
             Application.Run(appContext);

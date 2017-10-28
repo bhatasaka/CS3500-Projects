@@ -14,10 +14,17 @@ using System.Text.RegularExpressions;
 
 namespace SpreadsheetGUI
 {
+    /// </summary>
+    /// PS6 is a windows application form that is a spreadsheet.
+    /// For help on navigating the spreadsheet, use the menu located inside of the GUI.
+    /// <summary>
     public partial class PS6 : Form
     {
         private AbstractSpreadsheet spreadsheet;
         private string saveFileName;
+        /// <summary>
+        /// Creates a new, blank PS6 spreadsheet form.
+        /// </summary>
         public PS6()
         {
             InitializeComponent();
@@ -28,6 +35,11 @@ namespace SpreadsheetGUI
             this.AcceptButton = EnterButton;
             saveFileName = null;
         }
+
+        /// <summary>
+        /// Creates a new PS6 spreadsheet form with the given file path
+        /// </summary>
+        /// <param name="filePath"></param>
         public PS6(string filePath)
         {
             InitializeComponent();
@@ -37,6 +49,8 @@ namespace SpreadsheetGUI
 
             this.AcceptButton = EnterButton;
             saveFileName = filePath;
+
+            displayCellValues(spreadsheet.GetNamesOfAllNonemptyCells(), spreadsheetPanel1);
         }
 
         /// <summary>
@@ -170,15 +184,10 @@ namespace SpreadsheetGUI
                 cells = spreadsheet.SetContentsOfCell(cellName, ContentsBox.Text);
                 cellValueTextBox.Text = spreadsheet.GetCellValue(cellName).ToString();
 
-                object cellValue;
                 // Iterates through and updates the SpreadsheetPanel to show the value of all cells that
                 // may or may not have changed value due to updating this cell. (Will update this selected cell as well)
-                foreach (string cell in cells)
-                {
-                    cellValue = spreadsheet.GetCellValue(cell);
-                    GetCellIndexes(cell, out col, out row);
-                    p.SetValue(col, row, cellValue.ToString());
-                }
+                displayCellValues(cells, p);
+
             }
             catch (CircularException)
             {
@@ -191,6 +200,18 @@ namespace SpreadsheetGUI
                 MessageBox.Show("An incorrect reference to another cell was found. Check the cell name. " +
                     "Only the cells available in this spreadsheet can be referenced.",
                     this.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void displayCellValues(IEnumerable<string> cells, SpreadsheetPanel panel)
+        {
+            object cellValue;
+            int col, row;
+            foreach (string cell in cells)
+            {
+                cellValue = spreadsheet.GetCellValue(cell);
+                GetCellIndexes(cell, out col, out row);
+                panel.SetValue(col, row, cellValue.ToString());
             }
         }
 
@@ -246,7 +267,6 @@ namespace SpreadsheetGUI
                 {
                     try
                     {
-
                         XmlReader reader = XmlReader.Create(open.FileName);
                         bool enteredCell = false;
                         bool enteredName = false;
