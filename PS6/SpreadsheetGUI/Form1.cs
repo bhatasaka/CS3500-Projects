@@ -44,7 +44,14 @@ namespace SpreadsheetGUI
         public PS6(string filePath)
         {
             InitializeComponent();
-            spreadsheet = new Spreadsheet(filePath, isValid, s => s.ToUpper(), "PS6");
+            try
+            {
+                spreadsheet = new Spreadsheet(filePath, isValid, s => s.ToUpper(), "PS6");
+            }
+            catch(Exception)
+            {
+                MessageBox.Show("File could not be read, check filename/extension/version/contents");
+            }
 
             this.spreadsheetPanel1.SelectionChanged += onCellClicked;
 
