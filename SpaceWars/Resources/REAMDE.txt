@@ -1,0 +1,105 @@
+﻿PS9
+Andrew Russell and Bryan Hatasaka
+
+mySQL - uses database for u0323727
+Stat Tracking
+A new Player class was created. It contains stats for the player like the current score and how many times a player has fired.
+These are used to send stats to the server when the server admin types "Stop". 
+
+When the admin types stop, the game server stops and sends the data. 
+
+Webserver
+When the server controller is started, it lists for requests on port 80. A few pages have been designed. "localhost" will
+go to the front page where users can click on a link to load up a complete list of stats for all games, or the can enter
+input into a search back and hit submit to search for the data. Basic error processing is included, for example, if a user
+tries to search for a game number, but the input is not a number, it will throw an alert.
+
+On the overall stats page, users can click on a user name and the server will search for that player's stats. Likewise, 
+on the player's stats page, a user can click on a game number to view stats for the entire game.
+
+
+
+
+
+PS8
+Andrew Russell and Bryan Hatasaka
+
+Settings
+Settings are loaded from an XML file. Default values are provided if settings are not found in the file. This allows it to be
+backwards compatible with older server XML files.
+
+Player Stats and Tracking
+A new Player class was created. It contains tracking information and stats for the player. When player clients send a movement
+request, it turns a track bool to true so that the movement request can be handled during the next frame. In addition, it will
+store statistics like the current score and how many times a player has fired. These are used to send stats to the server
+when the server admin types "Stop". It also determines if a Ship is ready to fire by tracking frames between shots and comparing
+that to the frames per shot setting.
+
+Handling Commands From Players
+When players send commands, a tracker bool is set to true. When the next frame is being processed, players are locked so no more
+commands can be utilized until the frame is done processing. The player request trackers are then examined one by one to determine
+what kind of requests have been sent. For example, if a request to turn left was found, the ship will be rotated left and the
+tracker is set to false.
+
+Updating Frames
+Frame per second is determined by a setting in the XML file (default of 16 ms is used if none is found). Each frame, the world
+is locked until the entire frame has been proccessed. Ships are examined first, determining if movement requests need to be
+processed. Location is determined by adding gravity from the star to thrust accelleration, adding accelleration to velocity, and
+finally velocity to location. Once the new location is found, a function is ran to determine if the ship is within bounds, followed
+by comparing the ship to all other objects to determine if a collision has occured. If a player has disconnected since the last
+frame, their socket is removed from the list of sockets.
+
+Extra Features
+The update function has a delegate that it is passed that determines extra features. Creating new functions would
+be a simple matter of creating a new delegate to pass to the update function. Right now, it has a single extra 
+feature that has the stars move in random directions. Every second, there is a 1/8 chance to turn on the feature
+and a 1/8 chance to turn off the feature. Otherwise, a new velocity is selected.
+
+Unit Testing
+Our strategy for unit testing the model involved not only testing the methods by simple means - passing parameters to the member
+methods and testing for expected results - but also involved a sort of "simulation" strategy. For some methods, multiple objects, 
+such as ships, were made and modified like they would be in an actual game. For example, when adding to the world, ships with no 
+health are supposed to be deleted when the dead ship is passed to its update method. In addition, ships that score a point should 
+be ordered in a list of all of the ships in the world in a certain way. To test this, multiple ships were made and sometimes the 
+health would be set to 0, sometimes a point would be added and sometimes not. In the end, the expected results would be tested for. 
+This seems to be fairly effective at showing bugs - a bug with ship was actually found using this method that didn't alter gameplay 
+but was still there. This would have been more effective if we tested first as we would've encountered a bug with a method in ship 
+that gave some greif while testing the game by playing it.
+
+
+PS7
+Andrew Russell and Bryan Hatasaka
+
+Player scoreboard
+We decided to have the player scoreboard consist of a list of ships that is updated when the server sends updates for a ship. 
+If a player's score changes, the scoreboard is sorted. Drawing the scoreboard is accomplished through the PlayerPanel that use 
+logic very similar to the DrawingPanel, but without the transform.
+
+Keyboard controls
+We experimented with various keybaord designs. For example, we tried only sending data to the server when a key changes, but the server had 
+trouble recognizing whether or not the ship should continouously thrust when the up key was held down.
+The design we settled on had a string that was appended with a character when a key is 
+pressed and then removed when the key depressed. This string is resent to the server every 10 milliseconds. Doing so created the smoothest
+controls.
+
+Game Controller
+The game controller is an instantiated class that keeps track of the model and server connections, as well as sends updates to the model 
+so the view will update when needed (i.e. recieving objects for the world and modifying the world). It will parse JSON strings from the 
+server according to the SpcaeWars protocol and will draw the world and scoreboard as it updates. When modifying data, it is locked where 
+needed to avoid any race conditions that may occur.
+
+Network Support
+The Network Support class is a standalone, static class that contains no references to space wars. Inside is a socket state object class 
+that is used to remember what to do when information comes in. This class is used by the Game Controller to send and received data with the 
+server.
+
+Connecting to servers
+Attempting to connect to a server that does not exist (either the ip is not a real ip or the server is down), the client will notify the user 
+and give the option to attempt reconnection with a new ip.
+
+Non-default World Size
+The game will resize itself according to the information received from the server as to how big the world is.
+
+Explosions
+When a ship dies, a somewhat tame explosion is created at the site of the death. We decied to handle this through another object, similar to 
+ship, star and projectile. It is drawn by the drawing panel after a dead ship has been sent.

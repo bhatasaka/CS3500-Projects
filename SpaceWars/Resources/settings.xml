@@ -1,0 +1,30 @@
+<SpaceSettings>
+  <UniverseSize>1000</UniverseSize>
+  <MSPerFrame>16</MSPerFrame>
+  <FramesPerShot>6</FramesPerShot>
+  <RespawnRate>100</RespawnRate>
+  <StartingHitPoints>5</StartingHitPoints>
+  <ProjectileSpeed>15</ProjectileSpeed>
+  <EngineStrength>0.08</EngineStrength>
+  <TurningRate>3.0</TurningRate>
+  <ShipSize>20</ShipSize>
+  <StarSize>35</StarSize>
+  
+  <!-- Extra feature - the stars will randomly move around
+  when this feature is set to true-->
+  <MovingStars>false</MovingStars>
+ 
+  <Star>
+    <x>0</x>
+    <y>0</y>
+    <mass>0.01</mass>
+  </Star>
+  
+<!-- We can add other stars too (or none)
+  <Star>
+    <x>100</x>
+    <y>100</y>
+    <mass>0.01</mass>
+  </Star>
+ -->
+</SpaceSettings>
